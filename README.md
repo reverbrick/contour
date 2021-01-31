@@ -5,7 +5,6 @@ Open instrument using ease of arduino and power of ESP32 and natural wood as sou
 HARDWARE
 
 - Keyboard pcb
-![alt text](https://github.com/reverbrick/contour/blob/main/Touch%20keyboard1_pcb.png?raw=true)
 - Control pcb
 - Cnc milled pcb for gui and synth
 
