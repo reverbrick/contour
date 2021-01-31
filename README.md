@@ -4,8 +4,9 @@ Open instrument using ease of arduino and power of ESP32 and natural wood as sou
 
 HARDWARE
 
-- Fritzing files (soon)
-- Cnc milled pcb for gui and synth (1 board)
+- Keyboard pcb
+- Control pcb
+- Cnc milled pcb for gui and synth
 
 SOFTWARE
 
