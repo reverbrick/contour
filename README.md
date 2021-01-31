@@ -26,3 +26,5 @@ ENCLOSURE
 - Plywood box (design files shortly)
 
 ![alt text](https://github.com/reverbrick/contour/blob/main/contour_the_begining.png?raw=true)
+
+![alt text](https://github.com/reverbrick/contour/blob/main/golden_ratio.png?raw=true)
