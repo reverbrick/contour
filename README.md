@@ -21,10 +21,12 @@ BOM
 - Acoustic activator (to be chosen)
 - Mono amplifier (to be chosen)
 - MPR121 touch chips for UI
+- Induction charger / battery
 
 ENCLOSURE
 
 - Plywood box (design files shortly)
+- Cutting template
 
 ![alt text](https://github.com/reverbrick/contour/blob/main/contour_the_begining.png?raw=true)
 
