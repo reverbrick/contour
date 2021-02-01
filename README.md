@@ -9,15 +9,15 @@ HARDWARE
 - Cnc milled pcb for gui and synth
 
 DAC Connections
-  pcm5102 -> ESP32
-  vcc -> 5v
-  3.3v (to dac's XMT)
-  GND -> GND
-  BCK -> 33
-  DIN -> 26
-  LCK -> 25
-  FMT -> GND
-
+- pcm5102 -> ESP32
+- vcc -> 5v
+- 3.3v (to dac's XMT)
+- GND -> GND
+- BCK -> 33
+- DIN -> 26
+- LCK -> 25
+- FMT -> GND
+  
 SOFTWARE
 
 - Arduino (Control board)
