@@ -4,9 +4,19 @@ Open instrument using ease of arduino and power of ESP32 and natural wood as sou
 
 HARDWARE
 
-- Keyboard pcb
+- Keyboard pcb (Fritzing folder)
 - Control pcb
 - Cnc milled pcb for gui and synth
+
+DAC Connections
+  pcm5102 -> ESP32
+  vcc -> 5v
+  3.3v (to dac's XMT)
+  GND -> GND
+  BCK -> 33
+  DIN -> 26
+  LCK -> 25
+  FMT -> GND
 
 SOFTWARE
 
