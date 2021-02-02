@@ -12,5 +12,5 @@ void setup() {
 
 void loop() {
   faustSawtooth.setParamValue("freq",rand()%(2000-50 + 1) + 50);
-  delay(1000);
+  delay(10);
 }
