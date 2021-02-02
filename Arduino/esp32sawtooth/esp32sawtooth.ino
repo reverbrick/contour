@@ -3,14 +3,15 @@
 
 #include "FaustSawtooth.h"
 
-FaustSawtooth faustSawtooth(48000,8);
+FaustSawtooth faustSawtooth(96000,8);
 
 void setup() {
-  
   faustSawtooth.start();
 }
 
 void loop() {
-  faustSawtooth.setParamValue("freq",rand()%(2000-50 + 1) + 50);
-  delay(10);
+  for(int x = 0; x<4000; x++){
+   faustSawtooth.setParamValue("freq",x);
+   delay(5);
+  }
 }

@@ -23,8 +23,8 @@
  
  ************************************************************************/
 
-#ifndef faust_karplus_h_
-#define faust_karplus_h_
+#ifndef faust_bowl_h_
+#define faust_bowl_h_
 
 #include <string>
 #include "freertos/FreeRTOS.h"
@@ -38,11 +38,8 @@ class MapUI;
 class MidiUI;
 class esp32_midi;
 #endif
-#ifdef SOUNDFILE
-class SoundUI;
-#endif
 
-class karplus
+class bowl
 {
     private:
     
@@ -53,14 +50,11 @@ class karplus
         esp32_midi* fMIDIHandler;        
         MidiUI* fMIDIInterface;
     #endif
-    #ifdef SOUNDFILE
-        SoundUI* fSoundUI;
-    #endif
 
     public:
     
-        karplus(int sample_rate, int buffer_size);
-        ~karplus();
+        bowl(int sample_rate, int buffer_size);
+        ~bowl();
     
         bool start();
         void stop();

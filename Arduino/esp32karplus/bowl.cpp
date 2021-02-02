@@ -1,11 +1,11 @@
 // Options:
-#define HAS_MAIN
 /* ------------------------------------------------------------
-copyright: "(c)Romain Michon, CCRMA (Stanford University), GRAME"
-license: "MIT"
-name: "karplus", "KarplusStrong"
-Code generated with Faust 2.30.7 (https://faust.grame.fr)
-Compilation options: -lang cpp -es 1 -scal -ftz 0
+author: "Romain Michon"
+copyright: "Romain Michon (rmichon@ccrma.stanford.edu)"
+name: "Tibetan Bowl"
+version: "1.0"
+Code generated with Faust 2.28.4 (https://faust.grame.fr)
+Compilation options: -lang cpp -scal -ftz 0
 ------------------------------------------------------------ */
 
 #ifndef  __mydsp_H__
@@ -46,7 +46,7 @@ Compilation options: -lang cpp -es 1 -scal -ftz 0
  ************************************************************************
  ************************************************************************/
 
-#include "karplus.h"
+#include "bowl.h"
 
 /************************** BEGIN meta.h **************************/
 /************************************************************************
@@ -188,7 +188,7 @@ class dsp {
         /* Init default control parameters values */
         virtual void instanceResetUserInterface() = 0;
     
-        /* Init instance state (like delay lines...) but keep the control parameter values */
+        /* Init instance state (delay lines...) */
         virtual void instanceClear() = 0;
  
         /**
@@ -509,8 +509,6 @@ class MapUI : public UI, public PathBuilder
         // Label zone map
         std::map<std::string, FAUSTFLOAT*> fLabelZoneMap;
     
-        std::string fNullStr = "";
-    
     public:
         
         MapUI() {}
@@ -606,10 +604,10 @@ class MapUI : public UI, public PathBuilder
         
         int getParamsCount() { return int(fPathZoneMap.size()); }
         
-        const std::string& getParamAddress(int index)
+        std::string getParamAddress(int index)
         {
             if (index < 0 || index > int(fPathZoneMap.size())) {
-                return fNullStr;
+                return "";
             } else {
                 auto it = fPathZoneMap.begin();
                 while (index-- > 0 && it++ != fPathZoneMap.end()) {}
@@ -617,12 +615,12 @@ class MapUI : public UI, public PathBuilder
             }
         }
     
-        const std::string& getParamAddress(FAUSTFLOAT* zone)
+        std::string getParamAddress(FAUSTFLOAT* zone)
         {
             for (auto& it : fPathZoneMap) {
                 if (it.second == zone) return it.first;
             }
-            return fNullStr;
+            return "";
         }
     
         FAUSTFLOAT* getParamZone(const std::string& str)
@@ -1029,2147 +1027,6 @@ class esp32audio : public audio {
 #endif
 /**************************  END  esp32audio.h **************************/
 
-#ifdef SOUNDFILE
-#define ESP32
-/************************** BEGIN SoundUI.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2018 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
- 
-#ifndef __SoundUI_H__
-#define __SoundUI_H__
-
-#include <map>
-#include <vector>
-#include <string>
-#include <iostream>
-
-/************************** BEGIN DecoratorUI.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef Decorator_UI_H
-#define Decorator_UI_H
-
-
-//----------------------------------------------------------------
-//  Generic UI empty implementation
-//----------------------------------------------------------------
-
-class GenericUI : public UI
-{
-    
-    public:
-        
-        GenericUI() {}
-        virtual ~GenericUI() {}
-        
-        // -- widget's layouts
-        virtual void openTabBox(const char* label) {}
-        virtual void openHorizontalBox(const char* label) {}
-        virtual void openVerticalBox(const char* label) {}
-        virtual void closeBox() {}
-        
-        // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone) {}
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) {}
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
-    
-        // -- passive widgets
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-    
-        // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* soundpath, Soundfile** sf_zone) {}
-    
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {}
-    
-};
-
-//----------------------------------------------------------------
-//  Generic UI decorator
-//----------------------------------------------------------------
-
-class DecoratorUI : public UI
-{
-    
-    protected:
-        
-        UI* fUI;
-        
-    public:
-        
-        DecoratorUI(UI* ui = 0):fUI(ui) {}
-        virtual ~DecoratorUI() { delete fUI; }
-        
-        // -- widget's layouts
-        virtual void openTabBox(const char* label)          { fUI->openTabBox(label); }
-        virtual void openHorizontalBox(const char* label)   { fUI->openHorizontalBox(label); }
-        virtual void openVerticalBox(const char* label)     { fUI->openVerticalBox(label); }
-        virtual void closeBox()                             { fUI->closeBox(); }
-        
-        // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)         { fUI->addButton(label, zone); }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)    { fUI->addCheckButton(label, zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        { fUI->addVerticalSlider(label, zone, init, min, max, step); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        { fUI->addHorizontalSlider(label, zone, init, min, max, step); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        { fUI->addNumEntry(label, zone, init, min, max, step); }
-        
-        // -- passive widgets
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        { fUI->addHorizontalBargraph(label, zone, min, max); }
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        { fUI->addVerticalBargraph(label, zone, min, max); }
-    
-        // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) { fUI->addSoundfile(label, filename, sf_zone); }
-    
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) { fUI->declare(zone, key, val); }
-    
-};
-
-#endif
-/**************************  END  DecoratorUI.h **************************/
-/************************** BEGIN SimpleParser.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef SIMPLEPARSER_H
-#define SIMPLEPARSER_H
-
-// ---------------------------------------------------------------------
-//                          Simple Parser
-// A parser returns true if it was able to parse what it is
-// supposed to parse and advance the pointer. Otherwise it returns false
-// and the pointer is not advanced so that another parser can be tried.
-// ---------------------------------------------------------------------
-
-#include <vector>
-#include <map>
-#include <string>
-#include <cmath>
-#include <iostream>
-#include <ctype.h>
-
-#ifndef _WIN32
-# pragma GCC diagnostic ignored "-Wunused-function"
-#endif
-
-struct itemInfo {
-    std::string type;
-    std::string label;
-    std::string url;
-    std::string address;
-    int index;
-    double init;
-    double fmin;
-    double fmax;
-    double step;
-    std::vector<std::pair<std::string, std::string> > meta;
-    
-    itemInfo():index(0), init(0.), fmin(0.), fmax(0.), step(0.)
-    {}
-};
-
-// ---------------------------------------------------------------------
-//                          Elementary parsers
-// ---------------------------------------------------------------------
-
-// Report a parsing error
-static bool parseError(const char*& p, const char* errmsg)
-{
-    std::cerr << "Parse error : " << errmsg << " here : " << p << std::endl;
-    return true;
-}
-
-/**
- * @brief skipBlank : advance pointer p to the first non blank character
- * @param p the string to parse, then the remaining string
- */
-static void skipBlank(const char*& p)
-{
-    while (isspace(*p)) { p++; }
-}
-
-// Parse character x, but don't report error if fails
-static bool tryChar(const char*& p, char x)
-{
-    skipBlank(p);
-    if (x == *p) {
-        p++;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * @brief parseChar : parse a specific character x
- * @param p the string to parse, then the remaining string
- * @param x the character to recognize
- * @return true if x was found at the begin of p
- */
-static bool parseChar(const char*& p, char x)
-{
-    skipBlank(p);
-    if (x == *p) {
-        p++;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * @brief parseWord : parse a specific string w
- * @param p the string to parse, then the remaining string
- * @param w the string to recognize
- * @return true if string w was found at the begin of p
- */
-static bool parseWord(const char*& p, const char* w)
-{
-    skipBlank(p);
-    const char* saved = p;  // to restore position if we fail
-    while ((*w == *p) && (*w)) {++w; ++p;}
-    if (*w) {
-        p = saved;
-        return false;
-    } else {
-        return true;
-    }
-}
-
-/**
- * @brief parseDouble : parse number [s]dddd[.dddd] or [s]d[.dddd][E|e][s][dddd] and store the result in x
- * @param p the string to parse, then the remaining string
- * @param x the float number found if any
- * @return true if a float number was found at the begin of p
- */
-static bool parseDouble(const char*& p, double& x)
-{
-    double sign = 1.0;     // sign of the number
-    double ipart = 0;      // integral part of the number
-    double dpart = 0;      // decimal part of the number before division
-    double dcoef = 1.0;    // division factor for the decimal part
-    double expsign = 1.0;  // sign of the E|e part
-    double expcoef = 0.0;  // multiplication factor of E|e part
-    
-    bool valid = false;    // true if the number contains at least one digit
-    
-    skipBlank(p);
-    const char* saved = p;  // to restore position if we fail
-    
-    // Sign
-    if (parseChar(p, '+')) {
-        sign = 1.0;
-    } else if (parseChar(p, '-')) {
-        sign = -1.0;
-    }
-    
-    // Integral part
-    while (isdigit(*p)) {
-        valid = true;
-        ipart = ipart*10 + (*p - '0');
-        p++;
-    }
-    
-    // Possible decimal part
-    if (parseChar(p, '.')) {
-        while (isdigit(*p)) {
-            valid = true;
-            dpart = dpart*10 + (*p - '0');
-            dcoef *= 10.0;
-            p++;
-        }
-    }
-    
-    // Possible E|e part
-    if (parseChar(p, 'E') || parseChar(p, 'e')) {
-        if (parseChar(p, '+')) {
-            expsign = 1.0;
-        } else if (parseChar(p, '-')) {
-            expsign = -1.0;
-        }
-        while (isdigit(*p)) {
-            expcoef = expcoef*10 + (*p - '0');
-            p++;
-        }
-    }
-    
-    if (valid)  {
-        x = (sign*(ipart + dpart/dcoef)) * std::pow(10.0, expcoef*expsign);
-    } else {
-        p = saved;
-    }
-    return valid;
-}
-
-/**
- * @brief parseString, parse an arbitrary quoted string q...q and store the result in s
- * @param p the string to parse, then the remaining string
- * @param quote the character used to quote the string
- * @param s the (unquoted) string found if any
- * @return true if a string was found at the begin of p
- */
-static bool parseString(const char*& p, char quote, std::string& s)
-{
-    std::string str;
-    skipBlank(p);
-    
-    const char* saved = p;  // to restore position if we fail
-    if (*p++ == quote) {
-        while ((*p != 0) && (*p != quote)) {
-            str += *p++;
-        }
-        if (*p++ == quote) {
-            s = str;
-            return true;
-        }
-    }
-    p = saved;
-    return false;
-}
-
-/**
- * @brief parseSQString, parse a single quoted string '...' and store the result in s
- * @param p the string to parse, then the remaining string
- * @param s the (unquoted) string found if any
- * @return true if a string was found at the begin of p
- */
-static bool parseSQString(const char*& p, std::string& s)
-{
-    return parseString(p, '\'', s);
-}
-
-/**
- * @brief parseDQString, parse a double quoted string "..." and store the result in s
- * @param p the string to parse, then the remaining string
- * @param s the (unquoted) string found if any
- * @return true if a string was found at the begin of p
- */
-static bool parseDQString(const char*& p, std::string& s)
-{
-    return parseString(p, '"', s);
-}
-
-// ---------------------------------------------------------------------
-//
-//                          IMPLEMENTATION
-// 
-// ---------------------------------------------------------------------
-
-/**
- * @brief parseMenuItem, parse a menu item ...'low':440.0...
- * @param p the string to parse, then the remaining string
- * @param name the name found
- * @param value the value found
- * @return true if a nemu item was found
- */
-static bool parseMenuItem(const char*& p, std::string& name, double& value)
-{
-    const char* saved = p;  // to restore position if we fail
-    if (parseSQString(p, name) && parseChar(p, ':') && parseDouble(p, value)) {
-        return true;
-    } else {
-        p = saved;
-        return false;
-    }
-}
-
-static bool parseMenuItem2(const char*& p, std::string& name)
-{
-    const char* saved = p;  // to restore position if we fail
-    // single quoted
-    if (parseSQString(p, name)) {
-        return true;
-    } else {
-        p = saved;
-        return false;
-    }
-}
-
-/**
- * @brief parseMenuList, parse a menu list {'low' : 440.0; 'mid' : 880.0; 'hi' : 1760.0}...
- * @param p the string to parse, then the remaining string
- * @param names the vector of names found
- * @param values the vector of values found
- * @return true if a menu list was found
- */
-static bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values)
-{
-    std::vector<std::string> tmpnames;
-    std::vector<double> tmpvalues;
-    const char* saved = p; // to restore position if we fail
-
-    if (parseChar(p, '{')) {
-        do {
-            std::string n;
-            double v;
-            if (parseMenuItem(p, n, v)) {
-                tmpnames.push_back(n);
-                tmpvalues.push_back(v);
-            } else {
-                p = saved;
-                return false;
-            }
-        } while (parseChar(p, ';'));
-        if (parseChar(p, '}')) {
-            // we suceeded
-            names = tmpnames;
-            values = tmpvalues;
-            return true;
-        }
-    }
-    p = saved;
-    return false;
-}
-
-static bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug)
-{
-    std::vector<std::string> tmpnames;
-    const char* saved = p;  // to restore position if we fail
-    
-    if (parseChar(p, '{')) {
-        do {
-            std::string n;
-            if (parseMenuItem2(p, n)) {
-                tmpnames.push_back(n);
-            } else {
-                goto error;
-            }
-        } while (parseChar(p, ';'));
-        if (parseChar(p, '}')) {
-            // we suceeded
-            names = tmpnames;
-            return true;
-        }
-    }
-    
-error:
-    if (debug) { std::cerr << "parseMenuList2 : (" << saved << ") is not a valid list !\n"; }
-    p = saved;
-    return false;
-}
-
-/// ---------------------------------------------------------------------
-// Parse list of strings
-/// ---------------------------------------------------------------------
-static bool parseList(const char*& p, std::vector<std::string>& items)
-{
-    const char* saved = p;  // to restore position if we fail
-    if (parseChar(p, '[')) {
-        do {
-            std::string item;
-            if (!parseDQString(p, item)) {
-                p = saved;
-                return false;
-            }
-            items.push_back(item);
-        } while (tryChar(p, ','));
-        return parseChar(p, ']');
-    } else {
-        p = saved;
-        return false;
-    }
-}
-
-static bool parseMetaData(const char*& p, std::map<std::string, std::string>& metadatas)
-{
-    const char* saved = p; // to restore position if we fail
-    std::string metaKey, metaValue;
-    if (parseChar(p, ':') && parseChar(p, '[')) {
-        do { 
-            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p, '}')) {
-                metadatas[metaKey] = metaValue;
-            }
-        } while (tryChar(p, ','));
-        return parseChar(p, ']');
-    } else {
-        p = saved;
-        return false;
-    }
-}
-
-static bool parseItemMetaData(const char*& p, std::vector<std::pair<std::string, std::string> >& metadatas)
-{
-    const char* saved = p; // to restore position if we fail
-    std::string metaKey, metaValue;
-    if (parseChar(p, ':') && parseChar(p, '[')) {
-        do { 
-            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p, '}')) {
-                metadatas.push_back(std::make_pair(metaKey, metaValue));
-            }
-        } while (tryChar(p, ','));
-        return parseChar(p, ']');
-    } else {
-        p = saved;
-        return false;
-    }
-}
-
-// ---------------------------------------------------------------------
-// Parse metadatas of the interface:
-// "name" : "...", "inputs" : "...", "outputs" : "...", ...
-// and store the result as key/value
-/// ---------------------------------------------------------------------
-static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, double& dbl, std::map<std::string, std::string>& metadatas, std::vector<std::string>& items)
-{
-    const char* saved = p; // to restore position if we fail
-    if (parseDQString(p, key)) {
-        if (key == "meta") {
-            return parseMetaData(p, metadatas);
-        } else {
-            return parseChar(p, ':') && (parseDQString(p, value) || parseList(p, items) || parseDouble(p, dbl));
-        }
-    } else {
-        p = saved;
-        return false;
-    }
-}
-
-// ---------------------------------------------------------------------
-// Parse gui:
-// "type" : "...", "label" : "...", "address" : "...", ...
-// and store the result in uiItems Vector
-/// ---------------------------------------------------------------------
-static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItems)
-{
-    const char* saved = p; // to restore position if we fail
-    if (parseChar(p, '{')) {
-   
-        std::string label;
-        std::string value;
-        double dbl = 0;
-        
-        do {
-            if (parseDQString(p, label)) {
-                if (label == "type") {
-                    if (uiItems.size() != 0) {
-                        numItems++;
-                    }
-                    if (parseChar(p, ':') && parseDQString(p, value)) {   
-                        itemInfo item;
-                        item.type = value;
-                        uiItems.push_back(item);
-                    }
-                }
-                
-                else if (label == "label") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].label = value;
-                    }
-                }
-                
-                else if (label == "url") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].url = value;
-                    }
-                }
-                
-                else if (label == "address") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].address = value;
-                    }
-                }
-                
-                else if (label == "index") {
-                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].index = int(dbl);
-                    }
-                }
-                
-                else if (label == "meta") {
-                    if (!parseItemMetaData(p, uiItems[numItems].meta)) {
-                        return false;
-                    }
-                }
-                
-                else if (label == "init") {
-                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].init = dbl;
-                    }
-                }
-                
-                else if (label == "min") {
-                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].fmin = dbl;
-                    }
-                }
-                
-                else if (label == "max") {
-                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].fmax = dbl;
-                    }
-                }
-                
-                else if (label == "step") {
-                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].step = dbl;
-                    }
-                }
-                
-                else if (label == "items") {
-                    if (parseChar(p, ':') && parseChar(p, '[')) {
-                        do {
-                            if (!parseUI(p, uiItems, numItems)) {
-                                p = saved;
-                                return false;
-                            }
-                        } while (tryChar(p, ','));
-                        if (parseChar(p, ']')) {
-                            itemInfo item;
-                            item.type = "close";
-                            uiItems.push_back(item);
-                            numItems++;
-                        }
-                    }
-                }
-            } else {
-                p = saved;
-                return false;
-            }
-            
-        } while (tryChar(p, ','));
-    
-        return parseChar(p, '}');
-    } else {
-        return true; // "items": [] is valid
-    }
-}
-
-// ---------------------------------------------------------------------
-// Parse full JSON record describing a JSON/Faust interface :
-// {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
-//
-// and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
-/// ---------------------------------------------------------------------
-static bool parseJson(const char*& p,
-                      std::map<std::string, std::pair<std::string, double> >& metaDatas0,
-                      std::map<std::string, std::string>& metaDatas1,
-                      std::map<std::string, std::vector<std::string> >& metaDatas2,
-                      std::vector<itemInfo>& uiItems)
-{
-    parseChar(p, '{');
-    
-    do {
-        std::string key;
-        std::string value;
-        double dbl = 0;
-        std::vector<std::string> items;
-        if (parseGlobalMetaData(p, key, value, dbl, metaDatas1, items)) {
-            if (key != "meta") {
-                // keep "name", "inputs", "outputs" key/value pairs
-                if (items.size() > 0) {
-                    metaDatas2[key] = items;
-                    items.clear();
-                } else if (value != "") {
-                    metaDatas0[key].first = value;
-                } else {
-                    metaDatas0[key].second = dbl;
-                }
-            }
-        } else if (key == "ui") {
-            int numItems = 0;
-            parseChar(p, '[') && parseUI(p, uiItems, numItems);
-        }
-    } while (tryChar(p, ','));
-    
-    return parseChar(p, '}');
-}
-
-#endif // SIMPLEPARSER_H
-/**************************  END  SimpleParser.h **************************/
-
-#if defined(__APPLE__) && !defined(__VCVRACK__)
-#include <CoreFoundation/CFBundle.h>
-#endif
-
-// Always included otherwise -i mode later on will not always include it (with the conditional includes)
-/************************** BEGIN Soundfile.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2017 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
-
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef __Soundfile__
-#define __Soundfile__
-
-#include <iostream>
-#include <string.h>
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
-#define BUFFER_SIZE 16384
-#define SAMPLE_RATE 44100
-#define MAX_CHAN 64
-#define MAX_SOUNDFILE_PARTS 256
-
-#ifdef _MSC_VER
-#define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
-#define POST_PACKED_STRUCTURE \
-    ;                         \
-    __pragma(pack(pop))
-#else
-#define PRE_PACKED_STRUCTURE
-#define POST_PACKED_STRUCTURE __attribute__((__packed__))
-#endif
-
-/*
- The soundfile structure to be used by the DSP code. Soundfile has a MAX_SOUNDFILE_PARTS parts 
- (even a single soundfile or an empty soundfile). 
- fLength, fOffset and fSR fields are filled accordingly by repeating
- the actual parts if needed.
- 
- It has to be 'packed' to that the LLVM backend can correctly access it.
-
- Index computation:
-    - p is the current part number [0..MAX_SOUNDFILE_PARTS-1] (must be proved by the type system)
-    - i is the current position in the part. It will be constrained between [0..length]
-    - idx(p,i) = fOffset[p] + max(0, min(i, fLength[p]));
-*/
-
-PRE_PACKED_STRUCTURE
-struct Soundfile {
-    FAUSTFLOAT** fBuffers;
-    int* fLength;   // length of each part (so fLength[P] contains the length in frames of part P)
-    int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
-    int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
-    int fChannels;  // max number of channels of all concatenated files
-
-    Soundfile()
-    {
-        fBuffers  = nullptr;
-        fChannels = -1;
-        fLength   = new int[MAX_SOUNDFILE_PARTS];
-        fSR       = new int[MAX_SOUNDFILE_PARTS];
-        fOffset   = new int[MAX_SOUNDFILE_PARTS];
-    }
-
-    ~Soundfile()
-    {
-        // Free the real channels only
-        for (int chan = 0; chan < fChannels; chan++) {
-            delete[] fBuffers[chan];
-        }
-        delete[] fBuffers;
-        delete[] fLength;
-        delete[] fSR;
-        delete[] fOffset;
-    }
-
-} POST_PACKED_STRUCTURE;
-
-/*
- The generic soundfile reader.
- */
-
-class SoundfileReader {
-    
-   protected:
-    
-    int fDriverSR;
-    
-    void emptyFile(Soundfile* soundfile, int part, int& offset)
-    {
-        soundfile->fLength[part] = BUFFER_SIZE;
-        soundfile->fSR[part] = SAMPLE_RATE;
-        soundfile->fOffset[part] = offset;
-        // Update offset
-        offset += soundfile->fLength[part];
-    }
-
-    Soundfile* createSoundfile(int cur_chan, int length, int max_chan)
-    {
-        Soundfile* soundfile = new Soundfile();
-        soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
-        
-        for (int chan = 0; chan < cur_chan; chan++) {
-            soundfile->fBuffers[chan] = new FAUSTFLOAT[length];
-            memset(soundfile->fBuffers[chan], 0, sizeof(FAUSTFLOAT) * length);
-        }
-        
-        soundfile->fChannels = cur_chan;
-        return soundfile;
-    }
-
-    void getBuffersOffset(Soundfile* soundfile, FAUSTFLOAT** buffers, int offset)
-    {
-        for (int chan = 0; chan < soundfile->fChannels; chan++) {
-            buffers[chan] = &soundfile->fBuffers[chan][offset];
-        }
-    }
-    
-    // Check if a soundfile exists and return its real path_name
-    std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
-    {
-        if (checkFile(file_name)) {
-            return file_name;
-        } else {
-            for (size_t i = 0; i < sound_directories.size(); i++) {
-                std::string path_name = sound_directories[i] + "/" + file_name;
-                if (checkFile(path_name)) { return path_name; }
-            }
-            return "";
-        }
-    }
-    
-    bool isResampling(int sample_rate) { return (fDriverSR > 0 && fDriverSR != sample_rate); }
- 
-    // To be implemented by subclasses
-
-    /**
-     * Check the availability of a sound resource.
-     *
-     * @param path_name - the name of the file, or sound resource identified this way
-     *
-     * @return true if the sound resource is available, false otherwise.
-     */
-    virtual bool checkFile(const std::string& path_name) = 0;
-    
-    /**
-     * Check the availability of a sound resource.
-     *
-     * @param buffer - the sound buffer
-     * @param size - the sound buffer length
-     *
-     * @return true if the sound resource is available, false otherwise.
-     */
-
-    virtual bool checkFile(unsigned char* buffer, size_t size) { return true; }
-
-    /**
-     * Get the channels and length values of the given sound resource.
-     *
-     * @param path_name - the name of the file, or sound resource identified this way
-     * @param channels - the channels value to be filled with the sound resource number of channels
-     * @param length - the length value to be filled with the sound resource length in frames
-     *
-     */
-    virtual void getParamsFile(const std::string& path_name, int& channels, int& length) = 0;
-    
-    /**
-     * Get the channels and length values of the given sound resource.
-     *
-     * @param buffer - the sound buffer
-     * @param size - the sound buffer length
-     * @param channels - the channels value to be filled with the sound resource number of channels
-     * @param length - the length value to be filled with the sound resource length in frames
-     *
-     */
-    virtual void getParamsFile(unsigned char* buffer, size_t size, int& channels, int& length) {}
-
-    /**
-     * Read one sound resource and fill the 'soundfile' structure accordingly
-     *
-     * @param soundfile - the soundfile to be filled
-     * @param path_name - the name of the file, or sound resource identified this way
-     * @param part - the part number to be filled in the soundfile
-     * @param offset - the offset value to be incremented with the actual sound resource length in frames
-     * @param max_chan - the maximum number of mono channels to fill
-     *
-     */
-    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) = 0;
-    
-    /**
-     * Read one sound resource and fill the 'soundfile' structure accordingly
-     *
-     * @param soundfile - the soundfile to be filled
-     * @param buffer - the sound buffer
-     * @param size - the sound buffer length
-     * @param part - the part number to be filled in the soundfile
-     * @param offset - the offset value to be incremented with the actual sound resource length in frames
-     * @param max_chan - the maximum number of mono channels to fill
-     *
-     */
-    virtual void readFile(Soundfile* soundfile, unsigned char* buffer, size_t size, int part, int& offset, int max_chan) {}
-
-  public:
-    
-    virtual ~SoundfileReader() {}
-    
-    void setSampleRate(int sample_rate) { fDriverSR = sample_rate; }
-   
-    Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
-    {
-        try {
-            int cur_chan = 1; // At least one buffer
-            int total_length = 0;
-            
-            // Compute total length and channels max of all files
-            for (int i = 0; i < int(path_name_list.size()); i++) {
-                int chan, length;
-                if (path_name_list[i] == "__empty_sound__") {
-                    length = BUFFER_SIZE;
-                    chan = 1;
-                } else {
-                    getParamsFile(path_name_list[i], chan, length);
-                }
-                cur_chan = std::max<int>(cur_chan, chan);
-                total_length += length;
-            }
-           
-            // Complete with empty parts
-            total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
-            
-            // Create the soundfile
-            Soundfile* soundfile = createSoundfile(cur_chan, total_length, max_chan);
-            
-            // Init offset
-            int offset = 0;
-            
-            // Read all files
-            for (int i = 0; i < int(path_name_list.size()); i++) {
-                if (path_name_list[i] == "__empty_sound__") {
-                    emptyFile(soundfile, i, offset);
-                } else {
-                    readFile(soundfile, path_name_list[i], i, offset, max_chan);
-                }
-            }
-            
-            // Complete with empty parts
-            for (int i = int(path_name_list.size()); i < MAX_SOUNDFILE_PARTS; i++) {
-                emptyFile(soundfile, i, offset);
-            }
-            
-            // Share the same buffers for all other channels so that we have max_chan channels available
-            for (int chan = cur_chan; chan < max_chan; chan++) {
-                soundfile->fBuffers[chan] = soundfile->fBuffers[chan % cur_chan];
-            }
-            
-            return soundfile;
-            
-        } catch (...) {
-            return nullptr;
-        }
-    }
-
-    // Check if all soundfiles exist and return their real path_name
-    std::vector<std::string> checkFiles(const std::vector<std::string>& sound_directories,
-                                        const std::vector<std::string>& file_name_list)
-    {
-        std::vector<std::string> path_name_list;
-        for (size_t i = 0; i < file_name_list.size(); i++) {
-            std::string path_name = checkFile(sound_directories, file_name_list[i]);
-            // If 'path_name' is not found, it is replaced by an empty sound (= silence)
-            path_name_list.push_back((path_name == "") ? "__empty_sound__" : path_name);
-        }
-        return path_name_list;
-    }
-
-};
-
-#endif
-/**************************  END  Soundfile.h **************************/
-
-#if defined(JUCE_32BIT) || defined(JUCE_64BIT)
-/************************** BEGIN JuceReader.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2018 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef __JuceReader__
-#define __JuceReader__
-
-#include <assert.h>
-
-#include "../JuceLibraryCode/JuceHeader.h"
-
-
-struct JuceReader : public SoundfileReader {
-    
-    juce::AudioFormatManager fFormatManager;
-    
-    JuceReader() { fFormatManager.registerBasicFormats(); }
-    virtual ~JuceReader()
-    {}
-    
-    bool checkFile(const std::string& path_name)
-    {
-        juce::File file(path_name);
-        if (file.existsAsFile()) {
-            return true;
-        } else {
-            std::cerr << "ERROR : cannot open '" << path_name << "'" << std::endl;
-            return false;
-        }
-    }
-    
-    void getParamsFile(const std::string& path_name, int& channels, int& length)
-    {
-        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File (path_name)));
-        channels = int(formatReader->numChannels);
-        length = int(formatReader->lengthInSamples);
-    }
-    
-    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
-    {
-        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File (path_name)));
-        
-        soundfile->fLength[part] = int(formatReader->lengthInSamples);
-        soundfile->fSR[part] = int(formatReader->sampleRate);
-        soundfile->fOffset[part] = offset;
-        
-        FAUSTFLOAT** buffers = static_cast<FAUSTFLOAT**>(alloca(soundfile->fChannels * sizeof(FAUSTFLOAT*)));
-                                                             
-        getBuffersOffset(soundfile, buffers, offset);
-        
-        if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels), 0, int(formatReader->lengthInSamples), false)) {
-            
-            // Possibly concert samples
-            if (!formatReader->usesFloatingPointData) {
-                for (int chan = 0; chan < int(formatReader->numChannels); ++chan) {
-                    FAUSTFLOAT* buffer = &soundfile->fBuffers[chan][soundfile->fOffset[part]];
-                    juce::FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, int(formatReader->lengthInSamples));
-                }
-            }
-            
-        } else {
-            std::cerr << "Error reading the file : " << path_name << std::endl;
-        }
-            
-        // Update offset
-        offset += soundfile->fLength[part];
-    }
-    
-};
-
-#endif
-/**************************  END  JuceReader.h **************************/
-JuceReader gReader;
-#elif defined(ESP32)
-/************************** BEGIN Esp32Reader.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2020 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef FAUST_ESP32READER_H
-#define FAUST_ESP32READER_H
-
-#include <stdio.h>
-#include "esp_err.h"
-#include "esp_log.h"
-#include "esp_spi_flash.h"
-#include "esp_vfs_fat.h"
-#include "driver/sdspi_host.h"
-#include "sdmmc_cmd.h"
-
-/************************** BEGIN WaveReader.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2020 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef __WaveReader__
-#define __WaveReader__
-
-#include <string.h>
-#include <assert.h>
-#include <iostream>
-
-
-// WAVE file description
-typedef struct {
-    
-    // The canonical WAVE format starts with the RIFF header
-    
-    /**
-     Variable: chunk_id
-     Contains the letters "RIFF" in ASCII form (0x52494646 big-endian form).
-     **/
-    int chunk_id;
-    
-    /**
-     Variable: chunk_size
-     36 + SubChunk2Size, or more precisely: 4 + (8 + SubChunk1Size) + (8 + SubChunk2Size)
-     This is the size of the rest of the chunk following this number.
-     This is the size of the entire file in bytes minus 8 bytes for the
-     two fields not included in this count: ChunkID and ChunkSize.
-     **/
-    int chunk_size;
-    
-    /**
-     Variable: format
-     Contains the letters "WAVE" (0x57415645 big-endian form).
-     **/
-    int format;
-    
-    // The "WAVE" format consists of two subchunks: "fmt " and "data":
-    // The "fmt " subchunk describes the sound data's format:
-    
-    /**
-     Variable: subchunk_1_id
-     Contains the letters "fmt " (0x666d7420 big-endian form).
-     **/
-    int subchunk_1_id;
-    
-    /**
-     Variable: subchunk_1_size
-     16 for PCM. This is the size of the rest of the Subchunk which follows this number.
-     **/
-    int subchunk_1_size;
-    
-    /**
-     Variable: audio_format
-     PCM = 1 (i.e. Linear quantization) Values other than 1 indicate some form of compression.
-     **/
-    short audio_format;
-    
-    /**
-     Variable: num_channels
-     Mono = 1, Stereo = 2, etc.
-     **/
-    short num_channels;
-    
-    /**
-     Variable: sample_rate
-     8000, 44100, etc.
-     **/
-    int sample_rate;
-    
-    /**
-     Variable: byte_rate
-     == SampleRate * NumChannels * BitsPerSample/8
-     **/
-    int byte_rate;
-    
-    /**
-     Variable: block_align
-     == NumChannels * BitsPerSample/8
-     The number of bytes for one sample including all channels. I wonder what happens
-     when this number isn't an integer?
-     **/
-    short block_align;
-    
-    /**
-     Variable: bits_per_sample
-     8 bits = 8, 16 bits = 16, etc.
-     **/
-    short bits_per_sample;
-    
-    /**
-     Here should come some extra parameters which i will avoid.
-     **/
-    
-    // The "data" subchunk contains the size of the data and the actual sound:
-    
-    /**
-     Variable: subchunk_2_id
-     Contains the letters "data" (0x64617461 big-endian form).
-     **/
-    int subchunk_2_id;
-    
-    /**
-     Variable: subchunk_2_size
-     == NumSamples * NumChannels * BitsPerSample/8
-     This is the number of bytes in the data. You can also think of this as the size
-     of the read of the subchunk following this number.
-     **/
-    int subchunk_2_size;
-    
-    /**
-     Variable: data
-     The actual sound data.
-     **/
-    char* data;
-    
-} wave_t;
-
-// Base reader
-struct Reader {
-    
-    wave_t* fWave;
-
-    inline int is_big_endian()
-    {
-        int a = 1;
-        return !((char*)&a)[0];
-    }
-    
-    inline int convert_to_int(char* buffer, int len)
-    {
-        int a = 0;
-        if (!is_big_endian()) {
-            for(int i = 0; i < len; i++) {
-                ((char*)&a)[i] = buffer[i];
-            }
-        } else {
-            for(int i = 0; i < len; i++) {
-                ((char*)&a)[3-i] = buffer[i];
-            }
-        }
-        return a;
-    }
-    
-    Reader()
-    {
-        fWave = (wave_t*)calloc(1, sizeof(wave_t));
-    }
-
-    virtual ~Reader()
-    {
-        free(fWave->data);
-        free(fWave);
-    }
-
-    bool load_wave_header()
-    {
-        char buffer[4];
-        
-        read(buffer, 4);
-        if (strncmp(buffer, "RIFF", 4) != 0) {
-            std::cerr << "This is not valid WAV file!\n";
-            return false;
-        }
-        fWave->chunk_id = convert_to_int(buffer, 4);
-        
-        read(buffer, 4);
-        fWave->chunk_size = convert_to_int(buffer, 4);
-        
-        read(buffer, 4);
-        fWave->format = convert_to_int(buffer, 4);
-        
-        read(buffer, 4);
-        fWave->subchunk_1_id = convert_to_int(buffer, 4);
-        
-        read(buffer, 4);
-        fWave->subchunk_1_size = convert_to_int(buffer, 4);
-        
-        read(buffer, 2);
-        fWave->audio_format = convert_to_int(buffer, 2);
-        
-        read(buffer, 2);
-        fWave->num_channels = convert_to_int(buffer, 2);
-        
-        read(buffer, 4);
-        fWave->sample_rate = convert_to_int(buffer, 4);
-        
-        read(buffer, 4);
-        fWave->byte_rate = convert_to_int(buffer, 4);
-        
-        read(buffer, 2);
-        fWave->block_align = convert_to_int(buffer, 2);
-        
-        read(buffer, 2);
-        fWave->bits_per_sample = convert_to_int(buffer, 2);
-        
-        read(buffer, 4);
-        if (strncmp(buffer, "data", 4) != 0) {
-            read(buffer, 4);
-            int _extra_size = convert_to_int(buffer, 4);
-            char _extra_data[_extra_size];
-            read(_extra_data, _extra_size);
-            read(buffer, 4);
-            fWave->subchunk_2_id = convert_to_int(buffer, 4);
-        } else {
-            fWave->subchunk_2_id = convert_to_int(buffer, 4);
-        }
-        
-        read(buffer, 4);
-        fWave->subchunk_2_size = convert_to_int(buffer, 4);
-        return true;
-    }
-    
-    void load_wave()
-    {
-        // Read sound data
-        fWave->data = (char*)malloc(fWave->subchunk_2_size);
-        read(fWave->data, fWave->subchunk_2_size);
-    }
-
-    virtual void read(char* buffer, unsigned int size) = 0;
-   
-};
-
-struct FileReader : public Reader {
-    
-    FILE* fFile;
-    
-    FileReader(const std::string& file_path)
-    {
-        fFile = fopen(file_path.c_str(), "rb");
-        if (!fFile) {
-            std::cerr << "FileReader : cannot open file!\n";
-            throw -1;
-        }
-        if (!load_wave_header()) {
-            std::cerr << "FileReader : not a WAV file!\n";
-            throw -1;
-        }
-    }
-    
-    virtual ~FileReader()
-    {
-        fclose(fFile);
-    }
-    
-    void read(char* buffer, unsigned int size)
-    {
-        fread(buffer, 1, size, fFile);
-    }
-    
-};
-
-extern const uint8_t file_start[] asm("_binary_FILE_start");
-extern const uint8_t file_end[]   asm("_binary_FILE_end");
-
-struct MemoryReader : public Reader {
-    
-    int fPos;
-    const uint8_t* fStart;
-    const uint8_t* fEnd;
-    
-    MemoryReader(const uint8_t* start, const uint8_t* end):fPos(0)
-    {
-        fStart = start;
-        fEnd = end;
-        if (!load_wave_header()) {
-            std::cerr << "MemoryReader : not a WAV file!\n";
-            throw -1;
-        }
-    }
-    
-    virtual ~MemoryReader()
-    {}
-    
-    void read(char* buffer, unsigned int size)
-    {
-        memcpy(buffer, fStart + fPos, size);
-        fPos += size;
-    }
-    
-};
-
-// Using a FileReader to implement SoundfileReader
-
-struct WaveReader : public SoundfileReader {
-    
-    WaveReader() {}
-    virtual ~WaveReader() {}
-    
-    virtual bool checkFile(const std::string& path_name)
-    {
-        try {
-            FileReader reader(path_name);
-            return true;
-        } catch (...)  {
-            return false;
-        }
-    }
-    
-    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
-    {
-        FileReader reader(path_name);
-        channels = reader.fWave->num_channels;
-        length = (reader.fWave->subchunk_2_size * 8) / (reader.fWave->num_channels * reader.fWave->bits_per_sample);
-    }
-    
-    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
-    {
-        FileReader reader(path_name);
-        reader.load_wave();
-        
-        soundfile->fLength[part] = (reader.fWave->subchunk_2_size * 8) / (reader.fWave->num_channels * reader.fWave->bits_per_sample);
-        soundfile->fSR[part] = reader.fWave->sample_rate;
-        soundfile->fOffset[part] = offset;
-        
-        // Audio frames have to be written for each chan
-        if (reader.fWave->bits_per_sample == 16) {
-            float factor = 1.f/32767.f;
-            for (int sample = 0; sample < soundfile->fLength[part]; sample++) {
-                short* frame = (short*)&reader.fWave->data[reader.fWave->block_align * sample];
-                for (int chan = 0; chan < reader.fWave->num_channels; chan++) {
-                    soundfile->fBuffers[chan][offset + sample] = frame[chan] * factor;
-                }
-            }
-        } else if (reader.fWave->bits_per_sample == 32) {
-            std::cerr << "readFile : not implemented \n";
-        }
-        
-        // Update offset
-        offset += soundfile->fLength[part];
-    }
-};
-
-#endif
-/**************************  END  WaveReader.h **************************/
-
-#define TAG "Esp32Reader"
-
-#define SD_PIN_NUM_MISO GPIO_NUM_2
-#define SD_PIN_NUM_MOSI GPIO_NUM_15
-#define SD_PIN_NUM_CLK  GPIO_NUM_14
-#define SD_PIN_NUM_CS   GPIO_NUM_13
-
-struct Esp32Reader : public WaveReader {
-    
-    void sdcard_init()
-    {
-        ESP_LOGI(TAG, "Initializing SD card");
-        ESP_LOGI(TAG, "Using SPI peripheral");
-        
-        sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-        sdspi_slot_config_t slot_config = SDSPI_SLOT_CONFIG_DEFAULT();
-        slot_config.gpio_miso = SD_PIN_NUM_MISO;
-        slot_config.gpio_mosi = SD_PIN_NUM_MOSI;
-        slot_config.gpio_sck  = SD_PIN_NUM_CLK;
-        slot_config.gpio_cs   = SD_PIN_NUM_CS;
-        // This initializes the slot without card detect (CD) and write protect (WP) signals.
-        // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
-        
-        // Options for mounting the filesystem.
-        // If format_if_mount_failed is set to true, SD card will be partitioned and
-        // formatted in case when mounting fails.
-        esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-            .format_if_mount_failed = false,
-            .max_files = 5,
-            .allocation_unit_size = 16 * 1024
-        };
-        
-        // Use settings defined above to initialize SD card and mount FAT filesystem.
-        // Note: esp_vfs_fat_sdmmc_mount is an all-in-one convenience function.
-        // Please check its source code and implement error recovery when developing
-        // production applications.
-        sdmmc_card_t* card;
-        esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
-        
-        if (ret != ESP_OK) {
-            if (ret == ESP_FAIL) {
-                ESP_LOGE(TAG, "Failed to mount filesystem. "
-                         "If you want the card to be formatted, set format_if_mount_failed = true.");
-            } else {
-                ESP_LOGE(TAG, "Failed to initialize the card (%s). "
-                         "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
-            }
-            return;
-        }
-        
-        // Card has been initialized, print its properties
-        sdmmc_card_print_info(stdout, card);
-        ESP_LOGI(TAG, "SD card initialized");
-    }
-    
-    Esp32Reader()
-    {
-        sdcard_init();
-    }
-   
-    // Access methods inherited from WaveReader
-};
-
-#endif // FAUST_ESP32READER_H
-/**************************  END  Esp32Reader.h **************************/
-WaveReader gReader;
-#elif defined(MEMORY_READER)
-/************************** BEGIN MemoryReader.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2018 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef __MemoryReader__
-#define __MemoryReader__
-
-
-/*
- A 'MemoryReader' object can be used to prepare a set of sound resources in memory, to be used by SoundUI::addSoundfile.
- 
- A Soundfile* object will have to be filled with a list of sound resources: the fLength, fOffset, fSampleRate and fBuffers fields 
- have to be completed with the appropriate values, and will be accessed in the DSP object while running.
- *
- */
-
-// To adapt for a real case use
-
-#define SOUND_CHAN      2
-#define SOUND_LENGTH    4096
-#define SOUND_SR        44100
-
-struct MemoryReader : public SoundfileReader {
-    
-    MemoryReader()
-    {}
-    
-    /**
-     * Check the availability of a sound resource.
-     *
-     * @param path_name - the name of the file, or sound resource identified this way
-     *
-     * @return true if the sound resource is available, false otherwise.
-     */
-    virtual bool checkFile(const std::string& path_name) { return true; }
-    
-    /**
-     * Get the channels and length values of the given sound resource.
-     *
-     * @param path_name - the name of the file, or sound resource identified this way
-     * @param channels - the channels value to be filled with the sound resource number of channels
-     * @param length - the length value to be filled with the sound resource length in frames
-     *
-     */
-    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
-    {
-        channels = SOUND_CHAN;
-        length = SOUND_LENGTH;
-    }
-    
-    /**
-     * Read one sound resource and fill the 'soundfile' structure accordingly
-     *
-     * @param path_name - the name of the file, or sound resource identified this way
-     * @param part - the part number to be filled in the soundfile
-     * @param offset - the offset value to be incremented with the actual sound resource length in frames
-     * @param max_chan - the maximum number of mono channels to fill
-     *
-     */
-    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
-    {
-        soundfile->fLength[part] = SOUND_LENGTH;
-        soundfile->fSR[part] = SOUND_SR;
-        soundfile->fOffset[part] = offset;
-        
-        // Audio frames have to be written for each chan
-        for (int sample = 0; sample < SOUND_LENGTH; sample++) {
-            for (int chan = 0; chan < SOUND_CHAN; chan++) {
-                soundfile->fBuffers[chan][offset + sample] = 0.f;
-            }
-        }
-        
-        // Update offset
-        offset += SOUND_LENGTH;
-    }
-    
-};
-
-#endif
-/**************************  END  MemoryReader.h **************************/
-MemoryReader gReader;
-#else
-/************************** BEGIN LibsndfileReader.h **************************/
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2018 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- ************************************************************************/
-
-#ifndef __LibsndfileReader__
-#define __LibsndfileReader__
-
-#ifdef SAMPLERATE
-#include <samplerate.h>
-#endif
-#include <sndfile.h>
-#include <string.h>
-#include <assert.h>
-#include <iostream>
-
-
-struct VFLibsndfile {
-    
-    #define SIGNED_SIZEOF(x) ((int)sizeof(x))
-    
-    unsigned char* fBuffer;
-    size_t fLength;
-    size_t fOffset;
-    SF_VIRTUAL_IO fVIO;
-    
-    VFLibsndfile(unsigned char* buffer, size_t length):fBuffer(buffer), fLength(length), fOffset(0)
-    {
-        fVIO.get_filelen = vfget_filelen;
-        fVIO.seek = vfseek;
-        fVIO.read = vfread;
-        fVIO.write = vfwrite;
-        fVIO.tell = vftell;
-    }
-    
-    static sf_count_t vfget_filelen(void* user_data)
-    {
-        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
-        return vf->fLength;
-    }
-  
-    static sf_count_t vfseek(sf_count_t offset, int whence, void* user_data)
-    {
-        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
-        switch (whence) {
-            case SEEK_SET:
-                vf->fOffset = offset;
-                break;
-                
-            case SEEK_CUR:
-                vf->fOffset = vf->fOffset + offset;
-                break;
-                
-            case SEEK_END:
-                vf->fOffset = vf->fLength + offset;
-                break;
-                
-            default:
-                break;
-        };
-        
-        return vf->fOffset;
-    }
-    
-    static sf_count_t vfread(void* ptr, sf_count_t count, void* user_data)
-    {
-        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
-        
-        /*
-         **	This will break badly for files over 2Gig in length, but
-         **	is sufficient for testing.
-         */
-        if (vf->fOffset + count > vf->fLength) {
-            count = vf->fLength - vf->fOffset;
-        }
-        
-        memcpy(ptr, vf->fBuffer + vf->fOffset, count);
-        vf->fOffset += count;
-        
-        return count;
-    }
-    
-    static sf_count_t vfwrite(const void* ptr, sf_count_t count, void* user_data)
-    {
-        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
-        
-        /*
-         **	This will break badly for files over 2Gig in length, but
-         **	is sufficient for testing.
-         */
-        if (vf->fOffset >= SIGNED_SIZEOF(vf->fBuffer)) {
-            return 0;
-        }
-        
-        if (vf->fOffset + count > SIGNED_SIZEOF(vf->fBuffer)) {
-            count = sizeof (vf->fBuffer) - vf->fOffset;
-        }
-        
-        memcpy(vf->fBuffer + vf->fOffset, ptr, (size_t)count);
-        vf->fOffset += count;
-        
-        if (vf->fOffset > vf->fLength) {
-            vf->fLength = vf->fOffset;
-        }
-        
-        return count;
-    }
-    
-    static sf_count_t vftell(void* user_data)
-    {
-        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
-        return vf->fOffset;
-    }
- 
-};
-
-struct LibsndfileReader : public SoundfileReader {
-	
-    LibsndfileReader() {}
-	
-    typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
-	
-    // Check file
-    bool checkFile(const std::string& path_name)
-    {
-        SF_INFO snd_info;
-        snd_info.format = 0;
-        SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
-        return checkFileAux(snd_file, path_name);
-    }
-    
-    bool checkFile(unsigned char* buffer, size_t length)
-    {
-        SF_INFO snd_info;
-        snd_info.format = 0;
-        VFLibsndfile vio(buffer, length);
-        SNDFILE* snd_file = sf_open_virtual(&vio.fVIO, SFM_READ, &snd_info, &vio);
-        return checkFileAux(snd_file, "virtual file");
-    }
-    
-    bool checkFileAux(SNDFILE* snd_file, const std::string& path_name)
-    {
-        if (snd_file) {
-            sf_close(snd_file);
-            return true;
-        } else {
-            std::cerr << "ERROR : cannot open '" << path_name << "' (" << sf_strerror(NULL) << ")" << std::endl;
-            return false;
-        }
-    }
-
-    // Open the file and returns its length and channels
-    void getParamsFile(const std::string& path_name, int& channels, int& length)
-    {
-        SF_INFO	snd_info;
-        snd_info.format = 0;
-        SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
-        getParamsFileAux(snd_file, snd_info, channels, length);
-    }
-    
-    void getParamsFile(unsigned char* buffer, size_t size, int& channels, int& length)
-    {
-        SF_INFO	snd_info;
-        snd_info.format = 0;
-        VFLibsndfile vio(buffer, size);
-        SNDFILE* snd_file = sf_open_virtual(&vio.fVIO, SFM_READ, &snd_info, &vio);
-        getParamsFileAux(snd_file, snd_info, channels, length);
-    }
-    
-    void getParamsFileAux(SNDFILE* snd_file, const SF_INFO& snd_info, int& channels, int& length)
-    {
-        assert(snd_file);
-        channels = int(snd_info.channels);
-    #ifdef SAMPLERATE
-        length = (isResampling(snd_info.samplerate)) ? ((double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate)) + BUFFER_SIZE) : int(snd_info.frames);
-    #else
-        length = int(snd_info.frames);
-    #endif
-        sf_close(snd_file);
-    }
-    
-    // Read the file
-    void copyToOut(Soundfile* soundfile, int size, int channels, int max_channels, int offset, FAUSTFLOAT* buffer)
-    {
-        for (int sample = 0; sample < size; sample++) {
-            for (int chan = 0; chan < channels; chan++) {
-                soundfile->fBuffers[chan][offset + sample] = buffer[sample * max_channels + chan];
-            }
-        }
-    }
-    
-    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
-    {
-        SF_INFO	snd_info;
-        snd_info.format = 0;
-        SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
-        readFileAux(soundfile, snd_file, snd_info, part, offset, max_chan);
-    }
-    
-    void readFile(Soundfile* soundfile, unsigned char* buffer, size_t length, int part, int& offset, int max_chan)
-    {
-        SF_INFO	snd_info;
-        snd_info.format = 0;
-        VFLibsndfile vio(buffer, length);
-        SNDFILE* snd_file = sf_open_virtual(&vio.fVIO, SFM_READ, &snd_info, &vio);
-        readFileAux(soundfile, snd_file, snd_info, part, offset, max_chan);
-    }
-	
-    // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
-    void readFileAux(Soundfile* soundfile, SNDFILE* snd_file, const SF_INFO& snd_info, int part, int& offset, int max_chan)
-    {
-        assert(snd_file);
-        int channels = std::min<int>(max_chan, snd_info.channels);
-    #ifdef SAMPLERATE
-        if (isResampling(snd_info.samplerate)) {
-            soundfile->fLength[part] = int(double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate));
-            soundfile->fSR[part] = fDriverSR;
-        } else {
-            soundfile->fLength[part] = int(snd_info.frames);
-            soundfile->fSR[part] = snd_info.samplerate;
-        }
-    #else
-        soundfile->fLength[part] = int(snd_info.frames);
-        soundfile->fSR[part] = snd_info.samplerate;
-    #endif
-        soundfile->fOffset[part] = offset;
-		
-        // Read and fill snd_info.channels number of channels
-        sf_count_t nbf;
-        FAUSTFLOAT* buffer_in = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
-        sample_read reader;
-        
-        if (sizeof(FAUSTFLOAT) == 4) {
-            reader = reinterpret_cast<sample_read>(sf_readf_float);
-        } else {
-            reader = reinterpret_cast<sample_read>(sf_readf_double);
-        }
-        
-    #ifdef SAMPLERATE
-        // Resampling
-        SRC_STATE* resampler = nullptr;
-        FAUSTFLOAT* buffer_out = nullptr;
-        if  (isResampling(snd_info.samplerate)) {
-            int error;
-            resampler = src_new(SRC_SINC_FASTEST, channels, &error);
-            if (error != 0) {
-                std::cerr << "ERROR : src_new " << src_strerror(error) << std::endl;
-                throw -1;
-            }
-            buffer_out = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
-        }
-    #endif
-        
-        do {
-            nbf = reader(snd_file, buffer_in, BUFFER_SIZE);
-        #ifdef SAMPLERATE
-            // Resampling
-            if  (isResampling(snd_info.samplerate)) {
-                int in_offset = 0;
-                SRC_DATA src_data;
-                src_data.src_ratio = double(fDriverSR)/double(snd_info.samplerate);
-                do {
-                    src_data.data_in = &buffer_in[in_offset * snd_info.channels];
-                    src_data.data_out = buffer_out;
-                    src_data.input_frames = nbf - in_offset;
-                    src_data.output_frames = BUFFER_SIZE;
-                    src_data.end_of_input = (nbf < BUFFER_SIZE);
-                    int res = src_process(resampler, &src_data);
-                    if (res != 0) {
-                        std::cerr << "ERROR : src_process " << src_strerror(res) << std::endl;
-                        throw -1;
-                    }
-                    copyToOut(soundfile, src_data.output_frames_gen, channels, snd_info.channels, offset, buffer_out);
-                    in_offset += src_data.input_frames_used;
-                    // Update offset
-                    offset += src_data.output_frames_gen;
-                } while (in_offset < nbf);
-            } else {
-                copyToOut(soundfile, nbf, channels, snd_info.channels, offset, buffer_in);
-                // Update offset
-                offset += nbf;
-            }
-        #else
-            copyToOut(soundfile, nbf, channels, snd_info.channels, offset, buffer_in);
-            // Update offset
-            offset += nbf;
-        #endif
-        } while (nbf == BUFFER_SIZE);
-		
-        sf_close(snd_file);
-    #ifdef SAMPLERATE
-        if (resampler) src_delete(resampler);
-    #endif
-    }
-
-};
-
-#endif
-/**************************  END  LibsndfileReader.h **************************/
-LibsndfileReader gReader;
-#endif
-
-// To be used by DSP code if no SoundUI is used
-std::vector<std::string> path_name_list;
-Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
-
-class SoundUI : public GenericUI
-{
-		
-    private:
-    
-        std::vector<std::string> fSoundfileDir;             // The soundfile directories
-        std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles
-        SoundfileReader* fSoundReader;
-
-     public:
-    
-        /**
-         * Create a soundfile loader which will typically use a concrete SoundfileReader like LibsndfileReader or JuceReader to load soundfiles.
-         *
-         * @param sound_directory - the base directory to look for files, which paths will be relative to this one
-         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
-         * @param reader - an alternative soundfile reader
-         *
-         * @return the soundfile loader.
-         */
-        SoundUI(const std::string& sound_directory = "", int sample_rate = -1, SoundfileReader* reader = nullptr)
-        {
-            fSoundfileDir.push_back(sound_directory);
-            fSoundReader = (reader) ? reader : &gReader;
-            fSoundReader->setSampleRate(sample_rate);
-        }
-    
-        /**
-         * Create a soundfile loader which will typically use a concrete SoundfileReader like LibsndfileReader or JuceReader to load soundfiles.
-         *
-         * @param sound_directories - a vector of base directories to look for files, which paths will be relative to these ones
-         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
-         * @param reader - an alternative soundfile reader
-         *
-         * @return the soundfile loader.
-         */
-        SoundUI(const std::vector<std::string>& sound_directories, int sample_rate = -1, SoundfileReader* reader = nullptr)
-        :fSoundfileDir(sound_directories)
-        {
-            fSoundReader = (reader) ? reader : &gReader;
-            fSoundReader->setSampleRate(sample_rate);
-        }
-    
-        virtual ~SoundUI()
-        {   
-            // Delete all soundfiles
-            for (auto& it : fSoundfileMap) {
-                delete it.second;
-            }
-        }
-
-        // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
-        {
-            const char* saved_url = url; // 'url' is consumed by parseMenuList2
-            std::vector<std::string> file_name_list;
-            
-            bool menu = parseMenuList2(url, file_name_list, true);
-            // If not a list, we have as single file
-            if (!menu) { file_name_list.push_back(saved_url); }
-            
-            // Parse the possible list
-            if (fSoundfileMap.find(saved_url) == fSoundfileMap.end()) {
-                // Check all files and get their complete path
-                std::vector<std::string> path_name_list = fSoundReader->checkFiles(fSoundfileDir, file_name_list);
-                // Read them and create the Soundfile
-                Soundfile* sound_file = fSoundReader->createSoundfile(path_name_list, MAX_CHAN);
-                if (sound_file) {
-                    fSoundfileMap[saved_url] = sound_file;
-                } else {
-                    // If failure, use 'defaultsound'
-                    std::cerr << "addSoundfile : soundfile for " << saved_url << " cannot be created !" << std::endl;
-                    *sf_zone = defaultsound;
-                    return;
-                }
-            }
-            
-            // Get the soundfile
-            *sf_zone = fSoundfileMap[saved_url];
-        }
-    
-        /**
-         * An OS dependant function to get the path of the running executable or plugin.
-         * This will typically be used when creating a SoundUI soundfile loader, like new SoundUI(SoundUI::getBinaryPath());
-         *
-         * @return the running executable or plugin path.
-         */
-        static std::string getBinaryPath()
-        {
-            std::string bundle_path_str;
-        #if defined(__APPLE__) && !defined(__VCVRACK__)
-            CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-            if (!bundle_ref) { std::cerr << "getBinaryPath CFBundleCopyBundleURL error\n"; return ""; }
-      
-            UInt8 bundle_path[1024];
-            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
-                bundle_path_str = std::string((char*)bundle_path);
-            } else {
-                std::cerr << "getBinaryPath CFURLGetFileSystemRepresentation error\n";
-            }
-        #endif
-        #ifdef ANDROID_DRIVER
-            bundle_path_str = "/data/data/__CURRENT_ANDROID_PACKAGE__/files";
-        #endif
-            return bundle_path_str;
-        }
-    
-        /**
-         * An OS dependant function to get the path of the running executable or plugin.
-         * This will typically be used when creating a SoundUI soundfile loader, like new SoundUI(SoundUI::getBinaryPathFrom());
-         *
-         * @param path - entry point to start getting the path of the running executable or plugin.
-         *
-         * @return the running executable or plugin path.
-         */
-        static std::string getBinaryPathFrom(const std::string& path)
-        {
-            std::string bundle_path_str;
-        #if defined(__APPLE__) && !defined(__VCVRACK__)
-            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
-            if (!bundle) { std::cerr << "getBinaryPathFrom CFBundleGetBundleWithIdentifier error '" << path << "'" << std::endl; return ""; }
-         
-            CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
-            if (!bundle_ref) { std::cerr << "getBinaryPathFrom CFBundleCopyBundleURL error\n"; return ""; }
-            
-            UInt8 bundle_path[1024];
-            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
-                bundle_path_str = std::string((char*)bundle_path);
-            } else {
-                std::cerr << "getBinaryPathFrom CFURLGetFileSystemRepresentation error\n";
-            }
-        #endif
-        #ifdef ANDROID_DRIVER
-            bundle_path_str = "/data/data/__CURRENT_ANDROID_PACKAGE__/files";
-        #endif
-            return bundle_path_str;
-        }
-};
-
-#endif
-/**************************  END  SoundUI.h **************************/
-#endif
-
 // MIDI support
 #ifdef MIDICTRL
 /************************** BEGIN MidiUI.h **************************/
@@ -3202,7 +1059,6 @@ class SoundUI : public GenericUI
 #include <vector>
 #include <string>
 #include <utility>
-#include <iostream>
 #include <cstdlib>
 #include <cmath>
 
@@ -3236,7 +1092,6 @@ class SoundUI : public GenericUI
 #include <list>
 #include <map>
 #include <vector>
-#include <iostream>
 #include <assert.h>
 
 #ifdef _WIN32
@@ -3409,14 +1264,14 @@ class Interpolator3pt
 //--------------------------------------------------------------------------------------
 // Abstract ValueConverter class. Converts values between UI and Faust representations
 //--------------------------------------------------------------------------------------
-class ValueConverter // Identity by default
+class ValueConverter
 {
 
     public:
 
         virtual ~ValueConverter() {}
-        virtual double ui2faust(double x) { return x; };
-        virtual double faust2ui(double x) { return x; };
+        virtual double ui2faust(double x) = 0;
+        virtual double faust2ui(double x) = 0;
 };
 
 //--------------------------------------------------------------------------------------
@@ -3443,6 +1298,7 @@ class UpdatableValueConverter : public ValueConverter {
         bool getActive() { return fActive; }
     
 };
+
 
 //--------------------------------------------------------------------------------------
 // Linear conversion between ui and Faust values
@@ -3842,7 +1698,577 @@ class ZoneReader
 #include <string>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h> // We use the lighter fprintf code
 
+/************************** BEGIN SimpleParser.h **************************/
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ ************************************************************************/
+
+#ifndef SIMPLEPARSER_H
+#define SIMPLEPARSER_H
+
+// ---------------------------------------------------------------------
+//                          Simple Parser
+// A parser returns true if it was able to parse what it is
+// supposed to parse and advance the pointer. Otherwise it returns false
+// and the pointer is not advanced so that another parser can be tried.
+// ---------------------------------------------------------------------
+
+#include <vector>
+#include <map>
+#include <string>
+#include <stdio.h> // We use the lighter fprintf code
+#include <cmath>
+#include <ctype.h>
+
+#ifndef _WIN32
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+struct itemInfo {
+    std::string type;
+    std::string label;
+    std::string url;
+    std::string address;
+    int index;
+    double init;
+    double fmin;
+    double fmax;
+    double step;
+    std::vector<std::pair<std::string, std::string> > meta;
+    
+    itemInfo():index(0), init(0.), fmin(0.), fmax(0.), step(0.)
+    {}
+};
+
+// ---------------------------------------------------------------------
+//                          Elementary parsers
+// ---------------------------------------------------------------------
+
+// Report a parsing error
+static bool parseError(const char*& p, const char* errmsg)
+{
+    fprintf(stderr, "Parse error : %s here : %s\n", errmsg, p);
+    return true;
+}
+
+/**
+ * @brief skipBlank : advance pointer p to the first non blank character
+ * @param p the string to parse, then the remaining string
+ */
+static void skipBlank(const char*& p)
+{
+    while (isspace(*p)) { p++; }
+}
+
+// Parse character x, but don't report error if fails
+static bool tryChar(const char*& p, char x)
+{
+    skipBlank(p);
+    if (x == *p) {
+        p++;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief parseChar : parse a specific character x
+ * @param p the string to parse, then the remaining string
+ * @param x the character to recognize
+ * @return true if x was found at the begin of p
+ */
+static bool parseChar(const char*& p, char x)
+{
+    skipBlank(p);
+    if (x == *p) {
+        p++;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief parseWord : parse a specific string w
+ * @param p the string to parse, then the remaining string
+ * @param w the string to recognize
+ * @return true if string w was found at the begin of p
+ */
+static bool parseWord(const char*& p, const char* w)
+{
+    skipBlank(p);
+    const char* saved = p;  // to restore position if we fail
+    while ((*w == *p) && (*w)) {++w; ++p;}
+    if (*w) {
+        p = saved;
+        return false;
+    } else {
+        return true;
+    }
+}
+
+/**
+ * @brief parseDouble : parse number [s]dddd[.dddd] or [s]d[.dddd][E|e][s][dddd] and store the result in x
+ * @param p the string to parse, then the remaining string
+ * @param x the float number found if any
+ * @return true if a float number was found at the begin of p
+ */
+static bool parseDouble(const char*& p, double& x)
+{
+    double sign = 1.0;     // sign of the number
+    double ipart = 0;      // integral part of the number
+    double dpart = 0;      // decimal part of the number before division
+    double dcoef = 1.0;    // division factor for the decimal part
+    double expsign = 1.0;  // sign of the E|e part
+    double expcoef = 0.0;  // multiplication factor of E|e part
+    
+    bool valid = false;    // true if the number contains at least one digit
+    
+    skipBlank(p);
+    const char* saved = p;  // to restore position if we fail
+    
+    // Sign
+    if (parseChar(p, '+')) {
+        sign = 1.0;
+    } else if (parseChar(p, '-')) {
+        sign = -1.0;
+    }
+    
+    // Integral part
+    while (isdigit(*p)) {
+        valid = true;
+        ipart = ipart*10 + (*p - '0');
+        p++;
+    }
+    
+    // Possible decimal part
+    if (parseChar(p, '.')) {
+        while (isdigit(*p)) {
+            valid = true;
+            dpart = dpart*10 + (*p - '0');
+            dcoef *= 10.0;
+            p++;
+        }
+    }
+    
+    // Possible E|e part
+    if (parseChar(p, 'E') || parseChar(p, 'e')) {
+        if (parseChar(p, '+')) {
+            expsign = 1.0;
+        } else if (parseChar(p, '-')) {
+            expsign = -1.0;
+        }
+        while (isdigit(*p)) {
+            expcoef = expcoef*10 + (*p - '0');
+            p++;
+        }
+    }
+    
+    if (valid)  {
+        x = (sign*(ipart + dpart/dcoef)) * std::pow(10.0, expcoef*expsign);
+    } else {
+        p = saved;
+    }
+    return valid;
+}
+
+/**
+ * @brief parseString, parse an arbitrary quoted string q...q and store the result in s
+ * @param p the string to parse, then the remaining string
+ * @param quote the character used to quote the string
+ * @param s the (unquoted) string found if any
+ * @return true if a string was found at the begin of p
+ */
+static bool parseString(const char*& p, char quote, std::string& s)
+{
+    std::string str;
+    skipBlank(p);
+    
+    const char* saved = p;  // to restore position if we fail
+    if (*p++ == quote) {
+        while ((*p != 0) && (*p != quote)) {
+            str += *p++;
+        }
+        if (*p++ == quote) {
+            s = str;
+            return true;
+        }
+    }
+    p = saved;
+    return false;
+}
+
+/**
+ * @brief parseSQString, parse a single quoted string '...' and store the result in s
+ * @param p the string to parse, then the remaining string
+ * @param s the (unquoted) string found if any
+ * @return true if a string was found at the begin of p
+ */
+static bool parseSQString(const char*& p, std::string& s)
+{
+    return parseString(p, '\'', s);
+}
+
+/**
+ * @brief parseDQString, parse a double quoted string "..." and store the result in s
+ * @param p the string to parse, then the remaining string
+ * @param s the (unquoted) string found if any
+ * @return true if a string was found at the begin of p
+ */
+static bool parseDQString(const char*& p, std::string& s)
+{
+    return parseString(p, '"', s);
+}
+
+// ---------------------------------------------------------------------
+//
+//                          IMPLEMENTATION
+// 
+// ---------------------------------------------------------------------
+
+/**
+ * @brief parseMenuItem, parse a menu item ...'low':440.0...
+ * @param p the string to parse, then the remaining string
+ * @param name the name found
+ * @param value the value found
+ * @return true if a nemu item was found
+ */
+static bool parseMenuItem(const char*& p, std::string& name, double& value)
+{
+    const char* saved = p;  // to restore position if we fail
+    if (parseSQString(p, name) && parseChar(p, ':') && parseDouble(p, value)) {
+        return true;
+    } else {
+        p = saved;
+        return false;
+    }
+}
+
+static bool parseMenuItem2(const char*& p, std::string& name)
+{
+    const char* saved = p;  // to restore position if we fail
+    // single quoted
+    if (parseSQString(p, name)) {
+        return true;
+    } else {
+        p = saved;
+        return false;
+    }
+}
+
+/**
+ * @brief parseMenuList, parse a menu list {'low' : 440.0; 'mid' : 880.0; 'hi' : 1760.0}...
+ * @param p the string to parse, then the remaining string
+ * @param names the vector of names found
+ * @param values the vector of values found
+ * @return true if a menu list was found
+ */
+static bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values)
+{
+    std::vector<std::string> tmpnames;
+    std::vector<double> tmpvalues;
+    const char* saved = p; // to restore position if we fail
+
+    if (parseChar(p, '{')) {
+        do {
+            std::string n;
+            double v;
+            if (parseMenuItem(p, n, v)) {
+                tmpnames.push_back(n);
+                tmpvalues.push_back(v);
+            } else {
+                p = saved;
+                return false;
+            }
+        } while (parseChar(p, ';'));
+        if (parseChar(p, '}')) {
+            // we suceeded
+            names = tmpnames;
+            values = tmpvalues;
+            return true;
+        }
+    }
+    p = saved;
+    return false;
+}
+
+static bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug)
+{
+    std::vector<std::string> tmpnames;
+    const char* saved = p;  // to restore position if we fail
+    
+    if (parseChar(p, '{')) {
+        do {
+            std::string n;
+            if (parseMenuItem2(p, n)) {
+                tmpnames.push_back(n);
+            } else {
+                goto error;
+            }
+        } while (parseChar(p, ';'));
+        if (parseChar(p, '}')) {
+            // we suceeded
+            names = tmpnames;
+            return true;
+        }
+    }
+    
+error:
+    if (debug) { fprintf(stderr, "parseMenuList2 : (%s) is not a valid list !\n", p); }
+    p = saved;
+    return false;
+}
+
+/// ---------------------------------------------------------------------
+// Parse list of strings
+/// ---------------------------------------------------------------------
+static bool parseList(const char*& p, std::vector<std::string>& items)
+{
+    const char* saved = p;  // to restore position if we fail
+    if (parseChar(p, '[')) {
+        do {
+            std::string item;
+            if (!parseDQString(p, item)) {
+                p = saved;
+                return false;
+            }
+            items.push_back(item);
+        } while (tryChar(p, ','));
+        return parseChar(p, ']');
+    } else {
+        p = saved;
+        return false;
+    }
+}
+
+static bool parseMetaData(const char*& p, std::map<std::string, std::string>& metadatas)
+{
+    const char* saved = p; // to restore position if we fail
+    std::string metaKey, metaValue;
+    if (parseChar(p, ':') && parseChar(p, '[')) {
+        do { 
+            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p, '}')) {
+                metadatas[metaKey] = metaValue;
+            }
+        } while (tryChar(p, ','));
+        return parseChar(p, ']');
+    } else {
+        p = saved;
+        return false;
+    }
+}
+
+static bool parseItemMetaData(const char*& p, std::vector<std::pair<std::string, std::string> >& metadatas)
+{
+    const char* saved = p; // to restore position if we fail
+    std::string metaKey, metaValue;
+    if (parseChar(p, ':') && parseChar(p, '[')) {
+        do { 
+            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p, '}')) {
+                metadatas.push_back(std::make_pair(metaKey, metaValue));
+            }
+        } while (tryChar(p, ','));
+        return parseChar(p, ']');
+    } else {
+        p = saved;
+        return false;
+    }
+}
+
+// ---------------------------------------------------------------------
+// Parse metadatas of the interface:
+// "name" : "...", "inputs" : "...", "outputs" : "...", ...
+// and store the result as key/value
+/// ---------------------------------------------------------------------
+static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, double& dbl, std::map<std::string, std::string>& metadatas, std::vector<std::string>& items)
+{
+    const char* saved = p; // to restore position if we fail
+    if (parseDQString(p, key)) {
+        if (key == "meta") {
+            return parseMetaData(p, metadatas);
+        } else {
+            return parseChar(p, ':') && (parseDQString(p, value) || parseList(p, items) || parseDouble(p, dbl));
+        }
+    } else {
+        p = saved;
+        return false;
+    }
+}
+
+// ---------------------------------------------------------------------
+// Parse gui:
+// "type" : "...", "label" : "...", "address" : "...", ...
+// and store the result in uiItems Vector
+/// ---------------------------------------------------------------------
+static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItems)
+{
+    const char* saved = p; // to restore position if we fail
+    if (parseChar(p, '{')) {
+   
+        std::string label;
+        std::string value;
+        double dbl = 0;
+        
+        do {
+            if (parseDQString(p, label)) {
+                if (label == "type") {
+                    if (uiItems.size() != 0) {
+                        numItems++;
+                    }
+                    if (parseChar(p, ':') && parseDQString(p, value)) {   
+                        itemInfo item;
+                        item.type = value;
+                        uiItems.push_back(item);
+                    }
+                }
+                
+                else if (label == "label") {
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
+                        uiItems[numItems].label = value;
+                    }
+                }
+                
+                else if (label == "url") {
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
+                        uiItems[numItems].url = value;
+                    }
+                }
+                
+                else if (label == "address") {
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
+                        uiItems[numItems].address = value;
+                    }
+                }
+                
+                else if (label == "index") {
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].index = int(dbl);
+                    }
+                }
+                
+                else if (label == "meta") {
+                    if (!parseItemMetaData(p, uiItems[numItems].meta)) {
+                        return false;
+                    }
+                }
+                
+                else if (label == "init") {
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].init = dbl;
+                    }
+                }
+                
+                else if (label == "min") {
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].fmin = dbl;
+                    }
+                }
+                
+                else if (label == "max") {
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].fmax = dbl;
+                    }
+                }
+                
+                else if (label == "step") {
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].step = dbl;
+                    }
+                }
+                
+                else if (label == "items") {
+                    if (parseChar(p, ':') && parseChar(p, '[')) {
+                        do {
+                            if (!parseUI(p, uiItems, numItems)) {
+                                p = saved;
+                                return false;
+                            }
+                        } while (tryChar(p, ','));
+                        if (parseChar(p, ']')) {
+                            itemInfo item;
+                            item.type = "close";
+                            uiItems.push_back(item);
+                            numItems++;
+                        }
+                    }
+                }
+            } else {
+                p = saved;
+                return false;
+            }
+            
+        } while (tryChar(p, ','));
+    
+        return parseChar(p, '}');
+    } else {
+        return true; // "items": [] is valid
+    }
+}
+
+// ---------------------------------------------------------------------
+// Parse full JSON record describing a JSON/Faust interface :
+// {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
+//
+// and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
+/// ---------------------------------------------------------------------
+static bool parseJson(const char*& p,
+                      std::map<std::string, std::pair<std::string, double> >& metaDatas0,
+                      std::map<std::string, std::string>& metaDatas1,
+                      std::map<std::string, std::vector<std::string> >& metaDatas2,
+                      std::vector<itemInfo>& uiItems)
+{
+    parseChar(p, '{');
+    
+    do {
+        std::string key;
+        std::string value;
+        double dbl = 0;
+        std::vector<std::string> items;
+        if (parseGlobalMetaData(p, key, value, dbl, metaDatas1, items)) {
+            if (key != "meta") {
+                // keep "name", "inputs", "outputs" key/value pairs
+                if (items.size() > 0) {
+                    metaDatas2[key] = items;
+                    items.clear();
+                } else if (value != "") {
+                    metaDatas0[key].first = value;
+                } else {
+                    metaDatas0[key].second = dbl;
+                }
+            }
+        } else if (key == "ui") {
+            int numItems = 0;
+            parseChar(p, '[') && parseUI(p, uiItems, numItems);
+        }
+    } while (tryChar(p, ','));
+    
+    return parseChar(p, '}');
+}
+
+#endif // SIMPLEPARSER_H
+/**************************  END  SimpleParser.h **************************/
 
 static bool startWith(const std::string& str, const std::string& prefix)
 {
@@ -3914,7 +2340,6 @@ class MetaDataUI {
             fLogSet.clear();
             fExpSet.clear();
             fHiddenSet.clear();
-            fGroupTooltip = "";
         }
         
         /**
@@ -4061,8 +2486,8 @@ class MetaDataUI {
                                 if (deep < 1) {
                                     metadata[rmWhiteSpaces(key)] = "";
                                     state = kLabel;
-                                    key = "";
-                                    value = "";
+                                    key="";
+                                    value="";
                                 } else {
                                     key += c;
                                 }
@@ -4099,7 +2524,7 @@ class MetaDataUI {
                         break;
                         
                     default:
-                        std::cerr << "ERROR unrecognized state " << state << std::endl;
+                        fprintf(stderr, "ERROR unrecognized state %d\n", state);
                 }
             }
             label = rmWhiteSpaces(label);
@@ -4914,7 +3339,7 @@ class uiTimedItem : public uiItem
             size_t res;
             DatedControl dated_val(date, v);
             if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedControl))) != sizeof(DatedControl)) {
-                std::cerr << "ringbuffer_write error DatedControl" << std::endl;
+                fprintf(stderr, "ringbuffer_write error DatedControl\n");
             }
         }
     
@@ -4962,16 +3387,11 @@ static void createUiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void
 static void deleteClist(clist* cl)
 {
     for (auto& it : *cl) {
-        // This specific code is only used in JUCE context. TODO: use proper 'shared_ptr' based memory management.
-    #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
         uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(it);
         // owned items are deleted by external code
         if (!owned) {
             delete it;
         }
-    #else
-        delete it;
-    #endif
     }
 }
 
@@ -5007,7 +3427,6 @@ static void deleteClist(clist* cl)
 #include <vector>
 #include <map>
 #include <string>
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
@@ -5579,7 +3998,6 @@ struct MIDIMessage
  * MIDI input or output handling classes will implement this interface,
  * so the same method names (keyOn, ctrlChange...) will be used either
  * when decoding MIDI input or encoding MIDI output events.
- * MIDI channel is numbered in [0..15] in this layer.
  *******************************************************************************/
 
 class midi {
@@ -6074,8 +4492,6 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
  * This class decodes MIDI meta data and maps incoming MIDI messages to them.
  * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend
  * start/stop/clock meta data is handled.
- * MIDI channel is numbered in [1..16] in this layer.
- * Channel 0 means "all channels" when receiving or sending.
  ******************************************************************************/
 
 class uiMidi {
@@ -6088,11 +4504,13 @@ class uiMidi {
         bool fInputCtrl;
         int fChan;
     
+        // To be used when sending messages, returns the effective chan, or 0 when fChan is initialized with -1 (means 'all chans')
+        int rangeChan() { return (((fChan < 0) || (fChan > 15)) ? 0 : fChan); }
         bool inRange(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT v) { return (min <= v && v <= max); }
     
     public:
         
-        uiMidi(midi* midi_out, bool input, int chan = 0):fMidiOut(midi_out), fInputCtrl(input), fChan(chan)
+        uiMidi(midi* midi_out, bool input, int chan = -1):fMidiOut(midi_out), fInputCtrl(input), fChan(chan)
         {}
         virtual ~uiMidi()
         {}
@@ -6107,7 +4525,7 @@ class uiMidiItem : public uiMidi, public uiItem {
     
     public:
         
-        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = 0)
+        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
             :uiMidi(midi_out, input, chan), uiItem(ui, zone)
         {}
         virtual ~uiMidiItem()
@@ -6125,7 +4543,7 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
     public:
         
-        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = 0)
+        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
             :uiMidi(midi_out, input, chan), uiTimedItem(ui, zone)
         {}
         virtual ~uiMidiTimedItem()
@@ -6241,7 +4659,7 @@ class uiMidiProgChange : public uiMidiTimedItem {
     
         uiMidiProgChange(midi* midi_out, GUI* ui, FAUSTFLOAT* zone,
                          FAUSTFLOAT min, FAUSTFLOAT max,
-                         bool input = true, int chan = 0)
+                         bool input = true, int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), fMin(min), fMax(max)
         {}
         virtual ~uiMidiProgChange()
@@ -6252,14 +4670,7 @@ class uiMidiProgChange : public uiMidiTimedItem {
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (inRange(fMin, fMax, v)) {
-                if (fChan == 0) {
-                    // Send on [0..15] channels on the MIDI layer
-                    for (int chan = 0; chan < 16; chan++) {
-                        fMidiOut->progChange(chan, v);
-                    }
-                } else {
-                    fMidiOut->progChange(fChan - 1, v);
-                }
+                fMidiOut->progChange(rangeChan(), v);
             }
         }
     
@@ -6281,6 +4692,10 @@ class uiMidiProgChange : public uiMidiTimedItem {
 
 class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
     
+    private:
+        
+        int fPress;
+  
     public:
     
         uiMidiChanPress(midi* midi_out, GUI* ui,
@@ -6288,7 +4703,7 @@ class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
                         FAUSTFLOAT min, FAUSTFLOAT max,
                         bool input = true,
                         MetaDataUI::Scale scale = MetaDataUI::kLin,
-                        int chan = 0)
+                        int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max)
         {}
         virtual ~uiMidiChanPress()
@@ -6298,14 +4713,7 @@ class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (fChan == 0) {
-                // Send on [0..15] channels on the MIDI layer
-                for (int chan = 0; chan < 16; chan++) {
-                    fMidiOut->chanPress(chan, fConverter->faust2ui(v));
-                }
-            } else {
-                fMidiOut->chanPress(fChan - 1, fConverter->faust2ui(v));
-            }
+            fMidiOut->chanPress(rangeChan(), fConverter->faust2ui(v));
         }
     
         void modifyZone(FAUSTFLOAT v)
@@ -6341,7 +4749,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem, public uiConverter {
                      FAUSTFLOAT min, FAUSTFLOAT max,
                      bool input = true,
                      MetaDataUI::Scale scale = MetaDataUI::kLin,
-                     int chan = 0)
+                     int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fCtrl(ctrl)
         {}
         virtual ~uiMidiCtrlChange()
@@ -6351,14 +4759,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (fChan == 0) {
-                // Send on [0..15] channels on the MIDI layer
-                for (int chan = 0; chan < 16; chan++) {
-                    fMidiOut->ctrlChange(chan, fCtrl, fConverter->faust2ui(v));
-                }
-            } else {
-                fMidiOut->ctrlChange(fChan - 1, fCtrl, fConverter->faust2ui(v));
-            }
+            fMidiOut->ctrlChange(rangeChan(), fCtrl, fConverter->faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -6386,7 +4787,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
     
         uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone,
                          FAUSTFLOAT min, FAUSTFLOAT max,
-                         bool input = true, int chan = 0)
+                         bool input = true, int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan)
         {
             if (min <= 0 && max >= 0) {
@@ -6404,14 +4805,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (fChan == 0) {
-                // Send on [0..15] channels on the MIDI layer
-                for (int chan = 0; chan < 16; chan++) {
-                    fMidiOut->pitchWheel(chan, fConverter.faust2ui(v));
-                }
-            } else {
-                fMidiOut->pitchWheel(fChan - 1, fConverter.faust2ui(v));
-            }
+            fMidiOut->pitchWheel(rangeChan(), fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -6453,7 +4847,7 @@ class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
                     FAUSTFLOAT min, FAUSTFLOAT max,
                     bool input = true,
                     MetaDataUI::Scale scale = MetaDataUI::kLin,
-                    int chan = 0)
+                    int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKeyOn(key)
         {}
         virtual ~uiMidiKeyOn()
@@ -6463,14 +4857,7 @@ class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (fChan == 0) {
-                // Send on [0..15] channels on the MIDI layer
-                for (int chan = 0; chan < 16; chan++) {
-                    fMidiOut->keyOn(chan, fKeyOn, fConverter->faust2ui(v));
-                }
-            } else {
-                fMidiOut->keyOn(fChan - 1, fKeyOn, fConverter->faust2ui(v));
-            }
+            fMidiOut->keyOn(rangeChan(), fKeyOn, fConverter->faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -6506,7 +4893,7 @@ class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
                      FAUSTFLOAT min, FAUSTFLOAT max,
                      bool input = true,
                      MetaDataUI::Scale scale = MetaDataUI::kLin,
-                     int chan = 0)
+                     int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKeyOff(key)
         {}
         virtual ~uiMidiKeyOff()
@@ -6516,14 +4903,7 @@ class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (fChan == 0) {
-                // Send on [0..15] channels on the MIDI layer
-                for (int chan = 0; chan < 16; chan++) {
-                    fMidiOut->keyOn(chan, fKeyOff, fConverter->faust2ui(v));
-                }
-            } else {
-                fMidiOut->keyOn(fChan - 1, fKeyOff, fConverter->faust2ui(v));
-            }
+            fMidiOut->keyOff(rangeChan(), fKeyOff, fConverter->faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -6559,7 +4939,7 @@ class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
                        FAUSTFLOAT min, FAUSTFLOAT max,
                        bool input = true,
                        MetaDataUI::Scale scale = MetaDataUI::kLin,
-                       int chan = 0)
+                       int chan = -1)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKey(key)
         {}
         virtual ~uiMidiKeyPress()
@@ -6569,14 +4949,7 @@ class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (fChan == 0) {
-                // Send on [0..15] channels on the MIDI layer
-                for (int chan = 0; chan < 16; chan++) {
-                    fMidiOut->keyOn(chan, fKey, fConverter->faust2ui(v));
-                }
-            } else {
-                fMidiOut->keyOn(fChan - 1, fKey, fConverter->faust2ui(v));
-            }
+            fMidiOut->keyPress(rangeChan(), fKey, fConverter->faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -6701,8 +5074,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         {
             for (size_t i = 0; i < table.size(); i++) {
                 int channel_aux = table[i]->fChan;
-                // channel_aux == 0 means "all channels"
-                if (channel_aux == 0 || channel == channel_aux - 1) {
+                if (channel_aux == -1 || channel == channel_aux) {
                     if (fTimeStamp) {
                         table[i]->modifyZone(date, FAUSTFLOAT(val1));
                     } else {
@@ -6718,8 +5090,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
             if (table.find(val1) != table.end()) {
                 for (size_t i = 0; i < table[val1].size(); i++) {
                     int channel_aux = table[val1][i]->fChan;
-                    // channel_aux == 0 means "all channels"
-                    if (channel_aux == 0 || channel == channel_aux - 1) {
+                    if (channel_aux == -1 || channel == channel_aux) {
                         if (fTimeStamp) {
                             table[val1][i]->modifyZone(date, FAUSTFLOAT(val2));
                         } else {
@@ -6826,9 +5197,8 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         {
             if (ctrl == midi::PITCH_BEND_RANGE) {
                 for (size_t i = 0; i < fPitchWheelTable.size(); i++) {
-                    // channel_aux == 0 means "all channels"
                     int channel_aux = fPitchWheelTable[i]->fChan;
-                    if (channel_aux == 0 || channel == channel_aux - 1) {
+                    if (channel_aux == -1 || channel == channel_aux) {
                         fPitchWheelTable[i]->setRange(value);
                     }
                 }
@@ -7143,52 +5513,31 @@ class esp32_midi : public midi_handler {
 
 // Base class and common code for binary combiners
 
-enum Layout { kVerticalGroup, kHorizontalGroup, kTabGroup };
-
 class dsp_binary_combiner : public dsp {
 
     protected:
 
         dsp* fDSP1;
         dsp* fDSP2;
-        int fBufferSize;
-        Layout fLayout;
-        std::string fLabel;
 
-        void buildUserInterfaceAux(UI* ui_interface)
+        void buildUserInterfaceAux(UI* ui_interface, const char* name)
         {
-            switch (fLayout) {
-                case kHorizontalGroup:
-                    ui_interface->openHorizontalBox(fLabel.c_str());
-                    fDSP1->buildUserInterface(ui_interface);
-                    fDSP2->buildUserInterface(ui_interface);
-                    ui_interface->closeBox();
-                    break;
-                case kVerticalGroup:
-                    ui_interface->openVerticalBox(fLabel.c_str());
-                    fDSP1->buildUserInterface(ui_interface);
-                    fDSP2->buildUserInterface(ui_interface);
-                    ui_interface->closeBox();
-                    break;
-                case kTabGroup:
-                    ui_interface->openTabBox(fLabel.c_str());
-                    ui_interface->openVerticalBox("DSP1");
-                    fDSP1->buildUserInterface(ui_interface);
-                    ui_interface->closeBox();
-                    ui_interface->openVerticalBox("DSP2");
-                    fDSP2->buildUserInterface(ui_interface);
-                    ui_interface->closeBox();
-                    ui_interface->closeBox();
-                    break;
-            }
+            ui_interface->openTabBox(name);
+            ui_interface->openVerticalBox("DSP1");
+            fDSP1->buildUserInterface(ui_interface);
+            ui_interface->closeBox();
+            ui_interface->openVerticalBox("DSP2");
+            fDSP2->buildUserInterface(ui_interface);
+            ui_interface->closeBox();
+            ui_interface->closeBox();
         }
 
-        FAUSTFLOAT** allocateChannels(int num)
+        FAUSTFLOAT** allocateChannels(int num, int buffer_size)
         {
             FAUSTFLOAT** channels = new FAUSTFLOAT*[num];
             for (int chan = 0; chan < num; chan++) {
-                channels[chan] = new FAUSTFLOAT[fBufferSize];
-                memset(channels[chan], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+                channels[chan] = new FAUSTFLOAT[buffer_size];
+                memset(channels[chan], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             return channels;
         }
@@ -7203,8 +5552,7 @@ class dsp_binary_combiner : public dsp {
 
      public:
 
-        dsp_binary_combiner(dsp* dsp1, dsp* dsp2, int buffer_size, Layout layout, const std::string& label)
-        :fDSP1(dsp1), fDSP2(dsp2), fBufferSize(buffer_size), fLayout(layout), fLabel(label)
+        dsp_binary_combiner(dsp* dsp1, dsp* dsp2):fDSP1(dsp1), fDSP2(dsp2)
         {}
 
         virtual ~dsp_binary_combiner()
@@ -7263,13 +5611,9 @@ class dsp_sequencer : public dsp_binary_combiner {
 
     public:
 
-        dsp_sequencer(dsp* dsp1, dsp* dsp2,
-                      int buffer_size = 4096,
-                      Layout layout = Layout::kTabGroup,
-                      const std::string& label = "Sequencer")
-        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout, label)
+        dsp_sequencer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
         {
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), buffer_size);
         }
 
         virtual ~dsp_sequencer()
@@ -7282,12 +5626,12 @@ class dsp_sequencer : public dsp_binary_combiner {
 
         virtual void buildUserInterface(UI* ui_interface)
         {
-            buildUserInterfaceAux(ui_interface);
+            buildUserInterfaceAux(ui_interface, "Sequencer");
         }
 
         virtual dsp* clone()
         {
-            return new dsp_sequencer(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
+            return new dsp_sequencer(fDSP1->clone(), fDSP2->clone());
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -7311,11 +5655,7 @@ class dsp_parallelizer : public dsp_binary_combiner {
 
     public:
 
-        dsp_parallelizer(dsp* dsp1, dsp* dsp2,
-                     int buffer_size = 4096,
-                     Layout layout = Layout::kTabGroup,
-                     const std::string& label = "Parallelizer")
-        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout, label)
+        dsp_parallelizer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
         {
             fDSP2Inputs = new FAUSTFLOAT*[fDSP2->getNumInputs()];
             fDSP2Outputs = new FAUSTFLOAT*[fDSP2->getNumOutputs()];
@@ -7332,12 +5672,12 @@ class dsp_parallelizer : public dsp_binary_combiner {
 
         virtual void buildUserInterface(UI* ui_interface)
         {
-            buildUserInterfaceAux(ui_interface);
+            buildUserInterfaceAux(ui_interface, "Parallelizer");
         }
 
         virtual dsp* clone()
         {
-            return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
+            return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone());
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -7370,13 +5710,9 @@ class dsp_splitter : public dsp_binary_combiner {
 
     public:
 
-        dsp_splitter(dsp* dsp1, dsp* dsp2,
-                     int buffer_size = 4096,
-                     Layout layout = Layout::kTabGroup,
-                     const std::string& label = "Splitter")
-        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout, label)
+        dsp_splitter(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
         {
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), buffer_size);
             fDSP2Inputs = new FAUSTFLOAT*[fDSP2->getNumInputs()];
         }
 
@@ -7391,12 +5727,12 @@ class dsp_splitter : public dsp_binary_combiner {
 
         virtual void buildUserInterface(UI* ui_interface)
         {
-            buildUserInterfaceAux(ui_interface);
+            buildUserInterfaceAux(ui_interface, "Splitter");
         }
 
         virtual dsp* clone()
         {
-            return new dsp_splitter(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
+            return new dsp_splitter(fDSP1->clone(), fDSP2->clone());
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -7430,14 +5766,10 @@ class dsp_merger : public dsp_binary_combiner {
 
     public:
 
-        dsp_merger(dsp* dsp1, dsp* dsp2,
-                   int buffer_size = 4096,
-                   Layout layout = Layout::kTabGroup,
-                   const std::string& label = "Merger")
-        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout, label)
+        dsp_merger(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
         {
-            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs());
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
+            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs(), buffer_size);
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), buffer_size);
             fDSP2Inputs = new FAUSTFLOAT*[fDSP2->getNumInputs()];
         }
 
@@ -7453,12 +5785,12 @@ class dsp_merger : public dsp_binary_combiner {
 
         virtual void buildUserInterface(UI* ui_interface)
         {
-            buildUserInterfaceAux(ui_interface);
+            buildUserInterfaceAux(ui_interface, "Merge");
         }
 
         virtual dsp* clone()
         {
-            return new dsp_merger(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
+            return new dsp_merger(fDSP1->clone(), fDSP2->clone());
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -7494,15 +5826,12 @@ class dsp_recursiver : public dsp_binary_combiner {
 
     public:
 
-        dsp_recursiver(dsp* dsp1, dsp* dsp2,
-                       Layout layout = Layout::kTabGroup,
-                       const std::string& label = "Recursiver")
-        :dsp_binary_combiner(dsp1, dsp2, 1, layout, label)
+        dsp_recursiver(dsp* dsp1, dsp* dsp2):dsp_binary_combiner(dsp1, dsp2)
         {
-            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs());
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
-            fDSP2Inputs = allocateChannels(fDSP2->getNumInputs());
-            fDSP2Outputs = allocateChannels(fDSP2->getNumOutputs());
+            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs(), 1);
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), 1);
+            fDSP2Inputs = allocateChannels(fDSP2->getNumInputs(), 1);
+            fDSP2Outputs = allocateChannels(fDSP2->getNumOutputs(), 1);
         }
 
         virtual ~dsp_recursiver()
@@ -7518,12 +5847,12 @@ class dsp_recursiver : public dsp_binary_combiner {
 
         virtual void buildUserInterface(UI* ui_interface)
         {
-            buildUserInterfaceAux(ui_interface);
+            buildUserInterfaceAux(ui_interface, "Recursiver");
         }
 
         virtual dsp* clone()
         {
-            return new dsp_recursiver(fDSP1->clone(), fDSP2->clone(), fLayout, fLabel);
+            return new dsp_recursiver(fDSP1->clone(), fDSP2->clone());
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -7558,16 +5887,12 @@ class dsp_recursiver : public dsp_binary_combiner {
 
 #ifndef __dsp_algebra_api__
 #define __dsp_algebra_api__
-
 // DSP algebra API
 /*
- Each operation takes two DSP and a optional Layout and Label parameters, returns the combined DSPs, or null if failure with an error message.
+ Each operation takes two DSP as parameters, returns the combined DSPs, or null if failure with an error message.
  */
 
-static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
-                               std::string& error,
-                               Layout layout = Layout::kTabGroup,
-                               const std::string& label = "Sequencer")
+static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
@@ -7577,19 +5902,16 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
         error = error_aux.str();
         return nullptr;
     } else {
-        return new dsp_sequencer(dsp1, dsp2, 4096, layout, label);
+        return new dsp_sequencer(dsp1, dsp2);
     }
 }
 
-static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2,
-                                  std::string& error,
-                                  Layout layout = Layout::kTabGroup,
-                                  const std::string& label = "Parallelizer")
+static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2, std::string& error)
 {
-    return new dsp_parallelizer(dsp1, dsp2, 4096, layout, label);
+    return new dsp_parallelizer(dsp1, dsp2);
 }
 
-static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup, const std::string& label = "Splitter")
+static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_splitter : the first expression has no outputs\n";
@@ -7606,16 +5928,13 @@ static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout l
         error = error_aux.str();
         return nullptr;
     } else if (dsp2->getNumInputs() == dsp1->getNumOutputs()) {
-        return new dsp_sequencer(dsp1, dsp2, 4096, layout, label);
+        return new dsp_sequencer(dsp1, dsp2);
     } else {
-        return new dsp_splitter(dsp1, dsp2, 4096, layout, label);
+        return new dsp_splitter(dsp1, dsp2);
     }
 }
 
-static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
-                            std::string& error,
-                            Layout layout = Layout::kTabGroup,
-                            const std::string& label = "Merger")
+static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_merger : the first expression has no outputs\n";
@@ -7632,16 +5951,13 @@ static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2,
         error = error_aux.str();
         return nullptr;
     } else if (dsp2->getNumInputs() == dsp1->getNumOutputs()) {
-        return new dsp_sequencer(dsp1, dsp2, 4096, layout, label);
+        return new dsp_sequencer(dsp1, dsp2);
     } else {
-        return new dsp_merger(dsp1, dsp2, 4096, layout, label);
+        return new dsp_merger(dsp1, dsp2);
     }
 }
 
-static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
-                                std::string& error,
-                                Layout layout = Layout::kTabGroup,
-                                const std::string& label = "Recursiver")
+static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if ((dsp2->getNumInputs() > dsp1->getNumOutputs()) || (dsp2->getNumOutputs() > dsp1->getNumInputs())) {
         std::stringstream error_aux;
@@ -7661,7 +5977,7 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
         error = error_aux.str();
         return nullptr;
     } else {
-        return new dsp_recursiver(dsp1, dsp2, layout, label);
+        return new dsp_recursiver(dsp1, dsp2);
     }
 }
 #endif
@@ -9226,7 +7542,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
-        fRelease = 0;
         fMaxRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
@@ -9613,13 +7928,17 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             
                 // Then decide which one to steal
                 if (oldest_date_release != INT_MAX) {
-                    std::cout << "Steal release voice : voice_date " << fVoiceTable[voice_release]->fDate;
-                    std::cout << " cur_date = " << fDate << " voice = " << voice_release << std::endl;
+                    fprintf(stderr, "Steal release voice : voice_date = %d cur_date = %d voice = %d \n",
+                            fVoiceTable[voice_release]->fDate,
+                            fDate,
+                            voice_release);
                     voice = voice_release;
                     goto result;
                 } else if (oldest_date_playing != INT_MAX) {
-                    std::cout << "Steal playing voice : voice_date " << fVoiceTable[voice_playing]->fDate;
-                    std::cout << " cur_date = " << fDate << " voice = " << voice_playing << std::endl;
+                    fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
+                            fVoiceTable[voice_release]->fDate,
+                            fDate,
+                            voice_release);
                     voice = voice_playing;
                     goto result;
                 } else {
@@ -9646,7 +7965,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             if (fVoiceTable.size() > 0) {
                 return true;
             } else {
-                std::cout << "DSP is not polyphonic...\n";
+                fprintf(stderr, "DSP is not polyphonic...\n");
                 return false;
             }
         }
@@ -9828,7 +8147,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             if (it != fVoiceTable.end()) {
                 (*it)->keyOff();
             } else {
-                std::cout << "Voice not found\n";
+                fprintf(stderr, "Voice not found\n");
             }
         }
     
@@ -9855,7 +8174,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 if (voice != kNoVoice) {
                     fVoiceTable[voice]->keyOff();
                 } else {
-                    std::cout << "Playing pitch = " << pitch << " not found\n";
+                    fprintf(stderr, "Playing pitch = %d not found\n", pitch);
                 }
             }
         }
@@ -10032,8 +8351,70 @@ struct dsp_poly_factory : public dsp_factory {
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
+#include <math.h>
 
+class mydspSIG0 {
+	
+  private:
+	
+	int iRec25[2];
+	
+  public:
+	
+	int getNumInputsmydspSIG0() {
+		return 0;
+	}
+	int getNumOutputsmydspSIG0() {
+		return 1;
+	}
+	int getInputRatemydspSIG0(int channel) {
+		int rate;
+		switch ((channel)) {
+			default: {
+				rate = -1;
+				break;
+			}
+		}
+		return rate;
+	}
+	int getOutputRatemydspSIG0(int channel) {
+		int rate;
+		switch ((channel)) {
+			case 0: {
+				rate = 0;
+				break;
+			}
+			default: {
+				rate = -1;
+				break;
+			}
+		}
+		return rate;
+	}
+	
+	void instanceInitmydspSIG0(int sample_rate) {
+		for (int l35 = 0; (l35 < 2); l35 = (l35 + 1)) {
+			iRec25[l35] = 0;
+		}
+	}
+	
+	void fillmydspSIG0(int count, float* table) {
+		for (int i = 0; (i < count); i = (i + 1)) {
+			iRec25[0] = (iRec25[1] + 1);
+			table[i] = std::sin((9.58738019e-05f * float((iRec25[0] + -1))));
+			iRec25[1] = iRec25[0];
+		}
+	}
+
+};
+
+static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+
+static float mydsp_faustpower2_f(float value) {
+	return (value * value);
+}
+static float ftbl0mydspSIG0[65536];
 
 #ifndef FAUSTCLASS 
 #define FAUSTCLASS mydsp
@@ -10048,54 +8429,142 @@ class mydsp : public dsp {
 	
  private:
 	
-	FAUSTFLOAT fHslider0;
-	float fRec11[2];
-	int IOTA;
-	float fRec7[512];
-	FAUSTFLOAT fHslider1;
-	FAUSTFLOAT fHslider2;
-	FAUSTFLOAT fButton0;
-	float fVec0[2];
-	FAUSTFLOAT fHslider3;
-	float fRec12[2];
-	FAUSTFLOAT fHslider4;
-	float fVec1[512];
-	float fRec3[2];
-	float fRec0[3];
-	float fRec1[3];
 	int fSampleRate;
+	float fConst0;
+	float fConst1;
+	float fConst2;
+	float fConst3;
+	float fConst4;
+	float fConst5;
+	float fConst6;
+	FAUSTFLOAT fHslider0;
+	int IOTA;
+	float fVec0[64];
+	float fConst7;
+	FAUSTFLOAT fHslider1;
+	float fConst8;
+	float fConst9;
+	float fRec2[3];
+	float fRec1[2];
+	float fVec1[128];
+	float fConst10;
+	float fConst11;
+	float fRec4[3];
+	float fRec3[2];
+	float fVec2[128];
+	float fConst12;
+	float fConst13;
+	float fRec6[3];
+	float fRec5[2];
+	float fVec3[512];
+	float fConst14;
+	float fConst15;
+	float fRec8[3];
+	float fRec7[2];
+	float fVec4[2048];
+	float fConst16;
+	float fConst17;
+	float fRec10[3];
+	float fRec9[2];
+	float fVec5[64];
+	float fConst18;
+	float fConst19;
+	float fRec12[3];
+	float fRec11[2];
+	float fVec6[128];
+	float fConst20;
+	float fConst21;
+	float fRec14[3];
+	float fRec13[2];
+	float fVec7[128];
+	float fConst22;
+	float fConst23;
+	float fRec16[3];
+	float fRec15[2];
+	float fVec8[2048];
+	float fConst24;
+	float fConst25;
+	float fRec18[3];
+	float fRec17[2];
+	float fVec9[512];
+	float fConst26;
+	float fConst27;
+	float fRec20[3];
+	float fRec19[2];
+	float fVec10[256];
+	float fConst28;
+	float fConst29;
+	float fRec22[3];
+	float fRec21[2];
+	FAUSTFLOAT fHslider2;
+	float fRec24[2];
+	float fRec23[2];
+	float fConst30;
+	FAUSTFLOAT fHslider3;
+	float fRec28[2];
+	float fRec27[2];
+	float fRec26[2];
+	float fRec34[2];
+	float fRec33[2];
+	float fRec32[2];
+	float fRec31[2];
+	float fRec30[2];
+	float fRec29[2];
+	float fVec11[2];
+	float fRec0[2];
 	
  public:
 	
 	void metadata(Meta* m) { 
+		m->declare("author", "Romain Michon");
 		m->declare("basics.lib/name", "Faust Basic Element Library");
 		m->declare("basics.lib/version", "0.1");
-		m->declare("compile_options", "-lang cpp -es 1 -scal -ftz 0");
-		m->declare("copyright", "(c)Romain Michon, CCRMA (Stanford University), GRAME");
+		m->declare("copyright", "Romain Michon (rmichon@ccrma.stanford.edu)");
 		m->declare("delays.lib/name", "Faust Delay Library");
 		m->declare("delays.lib/version", "0.1");
-		m->declare("description", "Simple call of the Karplus-Strong model for the Faust physical modeling library");
-		m->declare("filename", "karplus.dsp");
-		m->declare("license", "MIT");
+		m->declare("description", "Banded Waveguide Modeld Tibetan Bowl");
+		m->declare("filename", "bowl.dsp");
+		m->declare("filters.lib/allpassnn:author", "Julius O. Smith III");
+		m->declare("filters.lib/allpassnn:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/allpassnn:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/lowpass0_highpass1:author", "Julius O. Smith III");
+		m->declare("filters.lib/lowpass:author", "Julius O. Smith III");
+		m->declare("filters.lib/lowpass:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/lowpass:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/name", "Faust Filters Library");
+		m->declare("filters.lib/tf1:author", "Julius O. Smith III");
+		m->declare("filters.lib/tf1:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/tf1:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/tf1s:author", "Julius O. Smith III");
+		m->declare("filters.lib/tf1s:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/tf1s:license", "MIT-style STK-4.3 license");
+		m->declare("instruments.lib/author", "Romain Michon (rmichon@ccrma.stanford.edu)");
+		m->declare("instruments.lib/copyright", "Romain Michon");
+		m->declare("instruments.lib/licence", "STK-4.3");
+		m->declare("instruments.lib/name", "Faust-STK Tools Library");
+		m->declare("instruments.lib/version", "1.0");
+		m->declare("licence", "STK-4.3");
 		m->declare("maths.lib/author", "GRAME");
 		m->declare("maths.lib/copyright", "GRAME");
 		m->declare("maths.lib/license", "LGPL with exception");
 		m->declare("maths.lib/name", "Faust Math Library");
 		m->declare("maths.lib/version", "2.3");
-		m->declare("name", "karplus");
-		m->declare("platform.lib/name", "Embedded Platform Library");
+		m->declare("name", "Tibetan Bowl");
+		m->declare("oscillators.lib/name", "Faust Oscillator Library");
+		m->declare("oscillators.lib/version", "0.1");
+		m->declare("platform.lib/name", "Generic Platform Library");
 		m->declare("platform.lib/version", "0.1");
-		m->declare("routes.lib/name", "Faust Signal Routing Library");
-		m->declare("routes.lib/version", "0.2");
 		m->declare("signals.lib/name", "Faust Signal Routing Library");
 		m->declare("signals.lib/version", "0.0");
+		m->declare("version", "1.0");
 	}
 
 	virtual int getNumInputs() {
 		return 0;
 	}
 	virtual int getNumOutputs() {
-		return 2;
+		return 1;
 	}
 	virtual int getInputRate(int channel) {
 		int rate;
@@ -10114,10 +8583,6 @@ class mydsp : public dsp {
 				rate = 1;
 				break;
 			}
-			case 1: {
-				rate = 1;
-				break;
-			}
 			default: {
 				rate = -1;
 				break;
@@ -10127,46 +8592,193 @@ class mydsp : public dsp {
 	}
 	
 	static void classInit(int sample_rate) {
+		mydspSIG0* sig0 = newmydspSIG0();
+		sig0->instanceInitmydspSIG0(sample_rate);
+		sig0->fillmydspSIG0(65536, ftbl0mydspSIG0);
+		deletemydspSIG0(sig0);
 	}
 	
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
+		fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate)));
+		fConst1 = (1.0f / std::tan((15707.9629f / fConst0)));
+		fConst2 = (1.0f / (fConst1 + 1.0f));
+		fConst3 = (1.0f - fConst1);
+		fConst4 = (1.0f - (100.530968f / fConst0));
+		fConst5 = mydsp_faustpower2_f(fConst4);
+		fConst6 = (0.5f * (1.0f - fConst5));
+		fConst7 = (0.0455041304f * fConst0);
+		fConst8 = (0.0f - (2.0f * fConst4));
+		fConst9 = (138.079453f / fConst0);
+		fConst10 = (0.0780799687f * fConst0);
+		fConst11 = (80.4711533f / fConst0);
+		fConst12 = (0.110920116f * fConst0);
+		fConst13 = (56.6460381f / fConst0);
+		fConst14 = (0.334079713f * fConst0);
+		fConst15 = (18.8074436f / fConst0);
+		fConst16 = (0.996123433f * fConst0);
+		fConst17 = (6.30763721f / fConst0);
+		fConst18 = (0.0578676164f * fConst0);
+		fConst19 = (108.578606f / fConst0);
+		fConst20 = (0.0779239163f * fConst0);
+		fConst21 = (80.632309f / fConst0);
+		fConst22 = (0.111133337f * fConst0);
+		fConst23 = (56.5373573f / fConst0);
+		fConst24 = (1.00390685f * fConst0);
+		fConst25 = (6.25873327f / fConst0);
+		fConst26 = (0.33566305f * fConst0);
+		fConst27 = (18.7187271f / fConst0);
+		fConst28 = (0.175301671f * fConst0);
+		fConst29 = (35.8421288f / fConst0);
+		fConst30 = (1.0f / fConst0);
 	}
 	
 	virtual void instanceResetUserInterface() {
-		fHslider0 = FAUSTFLOAT(0.01f);
+		fHslider0 = FAUSTFLOAT(0.0f);
 		fHslider1 = FAUSTFLOAT(440.0f);
-		fHslider2 = FAUSTFLOAT(0.0f);
-		fButton0 = FAUSTFLOAT(0.0f);
-		fHslider3 = FAUSTFLOAT(0.0f);
-		fHslider4 = FAUSTFLOAT(0.80000000000000004f);
+		fHslider2 = FAUSTFLOAT(0.02f);
+		fHslider3 = FAUSTFLOAT(220.0f);
 	}
 	
 	virtual void instanceClear() {
-		for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
-			fRec11[l0] = 0.0f;
-		}
 		IOTA = 0;
-		for (int l1 = 0; (l1 < 512); l1 = (l1 + 1)) {
-			fRec7[l1] = 0.0f;
+		for (int l0 = 0; (l0 < 64); l0 = (l0 + 1)) {
+			fVec0[l0] = 0.0f;
+		}
+		for (int l1 = 0; (l1 < 3); l1 = (l1 + 1)) {
+			fRec2[l1] = 0.0f;
 		}
 		for (int l2 = 0; (l2 < 2); l2 = (l2 + 1)) {
-			fVec0[l2] = 0.0f;
+			fRec1[l2] = 0.0f;
 		}
-		for (int l3 = 0; (l3 < 2); l3 = (l3 + 1)) {
-			fRec12[l3] = 0.0f;
+		for (int l3 = 0; (l3 < 128); l3 = (l3 + 1)) {
+			fVec1[l3] = 0.0f;
 		}
-		for (int l4 = 0; (l4 < 512); l4 = (l4 + 1)) {
-			fVec1[l4] = 0.0f;
+		for (int l4 = 0; (l4 < 3); l4 = (l4 + 1)) {
+			fRec4[l4] = 0.0f;
 		}
 		for (int l5 = 0; (l5 < 2); l5 = (l5 + 1)) {
 			fRec3[l5] = 0.0f;
 		}
-		for (int l6 = 0; (l6 < 3); l6 = (l6 + 1)) {
-			fRec0[l6] = 0.0f;
+		for (int l6 = 0; (l6 < 128); l6 = (l6 + 1)) {
+			fVec2[l6] = 0.0f;
 		}
 		for (int l7 = 0; (l7 < 3); l7 = (l7 + 1)) {
-			fRec1[l7] = 0.0f;
+			fRec6[l7] = 0.0f;
+		}
+		for (int l8 = 0; (l8 < 2); l8 = (l8 + 1)) {
+			fRec5[l8] = 0.0f;
+		}
+		for (int l9 = 0; (l9 < 512); l9 = (l9 + 1)) {
+			fVec3[l9] = 0.0f;
+		}
+		for (int l10 = 0; (l10 < 3); l10 = (l10 + 1)) {
+			fRec8[l10] = 0.0f;
+		}
+		for (int l11 = 0; (l11 < 2); l11 = (l11 + 1)) {
+			fRec7[l11] = 0.0f;
+		}
+		for (int l12 = 0; (l12 < 2048); l12 = (l12 + 1)) {
+			fVec4[l12] = 0.0f;
+		}
+		for (int l13 = 0; (l13 < 3); l13 = (l13 + 1)) {
+			fRec10[l13] = 0.0f;
+		}
+		for (int l14 = 0; (l14 < 2); l14 = (l14 + 1)) {
+			fRec9[l14] = 0.0f;
+		}
+		for (int l15 = 0; (l15 < 64); l15 = (l15 + 1)) {
+			fVec5[l15] = 0.0f;
+		}
+		for (int l16 = 0; (l16 < 3); l16 = (l16 + 1)) {
+			fRec12[l16] = 0.0f;
+		}
+		for (int l17 = 0; (l17 < 2); l17 = (l17 + 1)) {
+			fRec11[l17] = 0.0f;
+		}
+		for (int l18 = 0; (l18 < 128); l18 = (l18 + 1)) {
+			fVec6[l18] = 0.0f;
+		}
+		for (int l19 = 0; (l19 < 3); l19 = (l19 + 1)) {
+			fRec14[l19] = 0.0f;
+		}
+		for (int l20 = 0; (l20 < 2); l20 = (l20 + 1)) {
+			fRec13[l20] = 0.0f;
+		}
+		for (int l21 = 0; (l21 < 128); l21 = (l21 + 1)) {
+			fVec7[l21] = 0.0f;
+		}
+		for (int l22 = 0; (l22 < 3); l22 = (l22 + 1)) {
+			fRec16[l22] = 0.0f;
+		}
+		for (int l23 = 0; (l23 < 2); l23 = (l23 + 1)) {
+			fRec15[l23] = 0.0f;
+		}
+		for (int l24 = 0; (l24 < 2048); l24 = (l24 + 1)) {
+			fVec8[l24] = 0.0f;
+		}
+		for (int l25 = 0; (l25 < 3); l25 = (l25 + 1)) {
+			fRec18[l25] = 0.0f;
+		}
+		for (int l26 = 0; (l26 < 2); l26 = (l26 + 1)) {
+			fRec17[l26] = 0.0f;
+		}
+		for (int l27 = 0; (l27 < 512); l27 = (l27 + 1)) {
+			fVec9[l27] = 0.0f;
+		}
+		for (int l28 = 0; (l28 < 3); l28 = (l28 + 1)) {
+			fRec20[l28] = 0.0f;
+		}
+		for (int l29 = 0; (l29 < 2); l29 = (l29 + 1)) {
+			fRec19[l29] = 0.0f;
+		}
+		for (int l30 = 0; (l30 < 256); l30 = (l30 + 1)) {
+			fVec10[l30] = 0.0f;
+		}
+		for (int l31 = 0; (l31 < 3); l31 = (l31 + 1)) {
+			fRec22[l31] = 0.0f;
+		}
+		for (int l32 = 0; (l32 < 2); l32 = (l32 + 1)) {
+			fRec21[l32] = 0.0f;
+		}
+		for (int l33 = 0; (l33 < 2); l33 = (l33 + 1)) {
+			fRec24[l33] = 0.0f;
+		}
+		for (int l34 = 0; (l34 < 2); l34 = (l34 + 1)) {
+			fRec23[l34] = 0.0f;
+		}
+		for (int l36 = 0; (l36 < 2); l36 = (l36 + 1)) {
+			fRec28[l36] = 0.0f;
+		}
+		for (int l37 = 0; (l37 < 2); l37 = (l37 + 1)) {
+			fRec27[l37] = 0.0f;
+		}
+		for (int l38 = 0; (l38 < 2); l38 = (l38 + 1)) {
+			fRec26[l38] = 0.0f;
+		}
+		for (int l39 = 0; (l39 < 2); l39 = (l39 + 1)) {
+			fRec34[l39] = 0.0f;
+		}
+		for (int l40 = 0; (l40 < 2); l40 = (l40 + 1)) {
+			fRec33[l40] = 0.0f;
+		}
+		for (int l41 = 0; (l41 < 2); l41 = (l41 + 1)) {
+			fRec32[l41] = 0.0f;
+		}
+		for (int l42 = 0; (l42 < 2); l42 = (l42 + 1)) {
+			fRec31[l42] = 0.0f;
+		}
+		for (int l43 = 0; (l43 < 2); l43 = (l43 + 1)) {
+			fRec30[l43] = 0.0f;
+		}
+		for (int l44 = 0; (l44 < 2); l44 = (l44 + 1)) {
+			fRec29[l44] = 0.0f;
+		}
+		for (int l45 = 0; (l45 < 2); l45 = (l45 + 1)) {
+			fVec11[l45] = 0.0f;
+		}
+		for (int l46 = 0; (l46 < 2); l46 = (l46 + 1)) {
+			fRec0[l46] = 0.0f;
 		}
 	}
 	
@@ -10189,105 +8801,166 @@ class mydsp : public dsp {
 	}
 	
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("karplus");
-		ui_interface->declare(0, "0", "");
-		ui_interface->openHorizontalBox("params");
-		ui_interface->declare(&fHslider1, "0", "");
-		ui_interface->declare(&fHslider1, "style", "knob");
-		ui_interface->addHorizontalSlider("freq", &fHslider1, 440.0f, 50.0f, 1000.0f, 0.00999999978f);
-		ui_interface->declare(&fHslider3, "1", "");
-		ui_interface->declare(&fHslider3, "hidden", "1");
-		ui_interface->declare(&fHslider3, "midi", "pitchwheel");
-		ui_interface->declare(&fHslider3, "style", "knob");
-		ui_interface->addHorizontalSlider("bend", &fHslider3, 0.0f, -2.0f, 2.0f, 0.00999999978f);
-		ui_interface->declare(&fHslider0, "1", "");
-		ui_interface->declare(&fHslider0, "midi", "ctrl 1");
-		ui_interface->declare(&fHslider0, "style", "knob");
-		ui_interface->addHorizontalSlider("damping", &fHslider0, 0.00999999978f, 0.0f, 1.0f, 0.00999999978f);
-		ui_interface->declare(&fHslider4, "2", "");
-		ui_interface->declare(&fHslider4, "style", "knob");
-		ui_interface->addHorizontalSlider("gain", &fHslider4, 0.800000012f, 0.0f, 1.0f, 0.00999999978f);
-		ui_interface->declare(&fHslider2, "3", "");
-		ui_interface->declare(&fHslider2, "hidden", "1");
-		ui_interface->declare(&fHslider2, "midi", "ctrl 64");
-		ui_interface->declare(&fHslider2, "style", "knob");
-		ui_interface->addHorizontalSlider("sustain", &fHslider2, 0.0f, 0.0f, 1.0f, 1.0f);
-		ui_interface->closeBox();
-		ui_interface->declare(&fButton0, "1", "");
-		ui_interface->addButton("gate", &fButton0);
+		ui_interface->openVerticalBox("STibetanBowl");
+		ui_interface->declare(&fHslider0, "0", "");
+		ui_interface->declare(&fHslider0, "acc", "2 1 -10 0 10");
+		ui_interface->declare(&fHslider0, "tooltip", "0=Bow; 1=Strike");
+		ui_interface->addHorizontalSlider("Play", &fHslider0, 0.0f, 0.0f, 1.0f, 1.0f);
+		ui_interface->declare(&fHslider1, "1", "");
+		ui_interface->declare(&fHslider1, "tooltip", "Tone frequency");
+		ui_interface->declare(&fHslider1, "unit", "Hz");
+		ui_interface->addHorizontalSlider("Frequency", &fHslider1, 440.0f, 180.0f, 780.0f, 1.0f);
+		ui_interface->declare(&fHslider2, "2", "");
+		ui_interface->declare(&fHslider2, "acc", "0 1 -10 0 10");
+		ui_interface->declare(&fHslider2, "tooltip", "Nonlinearity factor (value between 0 and 1)");
+		ui_interface->addHorizontalSlider("Modulation", &fHslider2, 0.0199999996f, 0.0f, 0.100000001f, 0.00100000005f);
+		ui_interface->declare(&fHslider3, "3", "");
+		ui_interface->declare(&fHslider3, "acc", "0 0 -10 0 10");
+		ui_interface->declare(&fHslider3, "unit", "Hz");
+		ui_interface->addHorizontalSlider("Modulation Frequency", &fHslider3, 220.0f, 150.0f, 500.0f, 0.100000001f);
 		ui_interface->closeBox();
 	}
 	
 	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
 		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		float fSlow0 = (0.00100000005f * float(fHslider0));
-		float fSlow1 = (340.0f / float(fHslider1));
-		float fSlow2 = std::min<float>(1.0f, (float(fHslider2) + float(fButton0)));
-		int iSlow3 = (fSlow2 == 0.0f);
-		float fSlow4 = std::pow(2.0f, (0.0833333358f * float(fHslider3)));
-		float fSlow5 = float(fHslider4);
+		float fSlow0 = float(fHslider0);
+		float fSlow1 = (4.7063036f * fSlow0);
+		float fSlow2 = float(fHslider1);
+		int iSlow3 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst7 / fSlow2))));
+		float fSlow4 = (fConst8 * std::cos((fConst9 * fSlow2)));
+		float fSlow5 = (0.293696612f * fSlow0);
+		int iSlow6 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst10 / fSlow2))));
+		float fSlow7 = (fConst8 * std::cos((fConst11 * fSlow2)));
+		float fSlow8 = (3.00630331f * fSlow0);
+		int iSlow9 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst12 / fSlow2))));
+		float fSlow10 = (fConst8 * std::cos((fConst13 * fSlow2)));
+		float fSlow11 = (0.0914885998f * fSlow0);
+		int iSlow12 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst14 / fSlow2))));
+		float fSlow13 = (fConst8 * std::cos((fConst15 * fSlow2)));
+		float fSlow14 = (0.190035701f * fSlow0);
+		int iSlow15 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst16 / fSlow2))));
+		float fSlow16 = (fConst8 * std::cos((fConst17 * fSlow2)));
+		int iSlow17 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst18 / fSlow2))));
+		float fSlow18 = (fConst8 * std::cos((fConst19 * fSlow2)));
+		int iSlow19 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst20 / fSlow2))));
+		float fSlow20 = (fConst8 * std::cos((fConst21 * fSlow2)));
+		int iSlow21 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst22 / fSlow2))));
+		float fSlow22 = (fConst8 * std::cos((fConst23 * fSlow2)));
+		int iSlow23 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst24 / fSlow2))));
+		float fSlow24 = (fConst8 * std::cos((fConst25 * fSlow2)));
+		int iSlow25 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst26 / fSlow2))));
+		float fSlow26 = (fConst8 * std::cos((fConst27 * fSlow2)));
+		float fSlow27 = (3.29950404f * fSlow0);
+		int iSlow28 = int(std::min<float>(4096.0f, std::max<float>(0.0f, (fConst28 / fSlow2))));
+		float fSlow29 = (fConst8 * std::cos((fConst29 * fSlow2)));
+		float fSlow30 = (0.00100000005f * float(fHslider2));
+		float fSlow31 = (0.00100000005f * float(fHslider3));
 		for (int i = 0; (i < count); i = (i + 1)) {
-			fRec11[0] = (fSlow0 + (0.999000013f * fRec11[1]));
-			float fTemp0 = (0.5f * ((fRec1[1] + fRec1[2]) * ((0.200000003f * (1.0f - fRec11[0])) + 0.800000012f)));
-			fRec7[(IOTA & 511)] = fTemp0;
-			fVec0[0] = fSlow2;
-			float fTemp1 = float(((fSlow2 == fVec0[1]) | iSlow3));
-			fRec12[0] = ((0.999000013f * (fRec12[1] * fTemp1)) + (fSlow4 * (1.0f - (0.999000013f * fTemp1))));
-			float fTemp2 = (70.5882339f * ((fSlow1 / fRec12[0]) + -0.0500000007f));
-			float fTemp3 = (fTemp2 + -1.49999499f);
-			int iTemp4 = int(fTemp3);
-			int iTemp5 = (int(std::min<float>(423.529419f, float(std::max<int>(0, int(iTemp4))))) + 1);
-			float fTemp6 = std::floor(fTemp3);
-			float fTemp7 = (fTemp2 + (-1.0f - fTemp6));
-			float fTemp8 = (0.0f - fTemp7);
-			float fTemp9 = (fTemp2 + (-2.0f - fTemp6));
-			float fTemp10 = (0.0f - (0.5f * fTemp9));
-			float fTemp11 = (fTemp2 + (-3.0f - fTemp6));
-			float fTemp12 = (0.0f - (0.333333343f * fTemp11));
-			float fTemp13 = (fTemp2 + (-4.0f - fTemp6));
-			float fTemp14 = (0.0f - (0.25f * fTemp13));
-			float fTemp15 = (fTemp2 - fTemp6);
-			int iTemp16 = (int(std::min<float>(423.529419f, float(std::max<int>(0, int((iTemp4 + 1)))))) + 1);
-			float fTemp17 = (0.0f - fTemp9);
-			float fTemp18 = (0.0f - (0.5f * fTemp11));
-			float fTemp19 = (0.0f - (0.333333343f * fTemp13));
-			int iTemp20 = (int(std::min<float>(423.529419f, float(std::max<int>(0, int((iTemp4 + 2)))))) + 1);
-			float fTemp21 = (0.0f - fTemp11);
-			float fTemp22 = (0.0f - (0.5f * fTemp13));
-			float fTemp23 = (fTemp7 * fTemp9);
-			int iTemp24 = (int(std::min<float>(423.529419f, float(std::max<int>(0, int((iTemp4 + 3)))))) + 1);
-			float fTemp25 = (0.0f - fTemp13);
-			float fTemp26 = (fTemp23 * fTemp11);
-			int iTemp27 = (int(std::min<float>(423.529419f, float(std::max<int>(0, int((iTemp4 + 4)))))) + 1);
-			float fRec8 = (((((fRec7[((IOTA - iTemp5) & 511)] * fTemp8) * fTemp10) * fTemp12) * fTemp14) + (fTemp15 * ((((((fRec7[((IOTA - iTemp16) & 511)] * fTemp17) * fTemp18) * fTemp19) + (0.5f * (((fTemp7 * fRec7[((IOTA - iTemp20) & 511)]) * fTemp21) * fTemp22))) + (0.166666672f * ((fTemp23 * fRec7[((IOTA - iTemp24) & 511)]) * fTemp25))) + (0.0416666679f * (fTemp26 * fRec7[((IOTA - iTemp27) & 511)])))));
-			float fTemp28 = (fSlow2 - fVec0[1]);
-			float fTemp29 = (fSlow5 * (fTemp28 * float((fTemp28 > 0.0f))));
-			float fTemp30 = (fRec0[2] + fTemp29);
-			fVec1[(IOTA & 511)] = fTemp30;
-			float fTemp31 = ((((fTemp8 * fTemp10) * fTemp12) * fTemp14) * fVec1[((IOTA - iTemp5) & 511)]);
-			float fTemp32 = (fTemp15 * ((((((fTemp17 * fTemp18) * fTemp19) * fVec1[((IOTA - iTemp16) & 511)]) + (0.5f * (((fTemp7 * fTemp21) * fTemp22) * fVec1[((IOTA - iTemp20) & 511)]))) + (0.166666672f * ((fTemp23 * fTemp25) * fVec1[((IOTA - iTemp24) & 511)]))) + (0.0416666679f * (fTemp26 * fVec1[((IOTA - iTemp27) & 511)]))));
-			float fRec9 = (fTemp31 + fTemp32);
-			float fRec10 = (fTemp32 + (fTemp0 + fTemp31));
-			fRec3[0] = fRec8;
-			float fRec4 = (fTemp29 + fRec3[1]);
-			float fRec5 = fRec9;
-			float fRec6 = fRec10;
-			fRec0[0] = fRec4;
-			fRec1[0] = fRec5;
-			float fRec2 = fRec6;
-			float fTemp33 = (0.300000012f * fRec2);
-			output0[i] = FAUSTFLOAT(fTemp33);
-			output1[i] = FAUSTFLOAT(fTemp33);
-			fRec11[1] = fRec11[0];
+			fVec0[(IOTA & 63)] = (fSlow1 + (fRec1[1] + 1.0f));
+			fRec2[0] = (fVec0[((IOTA - iSlow3) & 63)] - ((fSlow4 * fRec2[1]) + (fConst5 * fRec2[2])));
+			fRec1[0] = (fConst6 * (fRec2[0] - fRec2[2]));
+			fVec1[(IOTA & 127)] = ((fRec3[1] + 1.0f) - fSlow5);
+			fRec4[0] = ((0.999965489f * fVec1[((IOTA - iSlow6) & 127)]) - ((fSlow7 * fRec4[1]) + (fConst5 * fRec4[2])));
+			fRec3[0] = (fConst6 * (fRec4[0] - fRec4[2]));
+			fVec2[(IOTA & 127)] = (fSlow8 + (fRec5[1] + 1.0f));
+			fRec6[0] = (fVec2[((IOTA - iSlow9) & 127)] - ((fSlow10 * fRec6[1]) + (fConst5 * fRec6[2])));
+			fRec5[0] = (fConst6 * (fRec6[0] - fRec6[2]));
+			fVec3[(IOTA & 511)] = (fSlow11 + (fRec7[1] + 1.0f));
+			fRec8[0] = ((0.999982774f * fVec3[((IOTA - iSlow12) & 511)]) - ((fSlow13 * fRec8[1]) + (fConst5 * fRec8[2])));
+			fRec7[0] = (fConst6 * (fRec8[0] - fRec8[2]));
+			fVec4[(IOTA & 2047)] = (fSlow14 + (fRec9[1] + 1.0f));
+			fRec10[0] = ((0.999925971f * fVec4[((IOTA - iSlow15) & 2047)]) - ((fSlow16 * fRec10[1]) + (fConst5 * fRec10[2])));
+			fRec9[0] = (fConst6 * (fRec10[0] - fRec10[2]));
+			fVec5[(IOTA & 63)] = (fSlow1 + (fRec11[1] + 1.0f));
+			fRec12[0] = (fVec5[((IOTA - iSlow17) & 63)] - ((fSlow18 * fRec12[1]) + (fConst5 * fRec12[2])));
+			fRec11[0] = (fConst6 * (fRec12[0] - fRec12[2]));
+			fVec6[(IOTA & 127)] = ((fRec13[1] + 1.0f) - fSlow5);
+			fRec14[0] = ((0.999965489f * fVec6[((IOTA - iSlow19) & 127)]) - ((fSlow20 * fRec14[1]) + (fConst5 * fRec14[2])));
+			fRec13[0] = (fConst6 * (fRec14[0] - fRec14[2]));
+			fVec7[(IOTA & 127)] = (fSlow8 + (fRec15[1] + 1.0f));
+			fRec16[0] = (fVec7[((IOTA - iSlow21) & 127)] - ((fSlow22 * fRec16[1]) + (fConst5 * fRec16[2])));
+			fRec15[0] = (fConst6 * (fRec16[0] - fRec16[2]));
+			fVec8[(IOTA & 2047)] = (fSlow14 + (fRec17[1] + 1.0f));
+			fRec18[0] = ((0.999925971f * fVec8[((IOTA - iSlow23) & 2047)]) - ((fSlow24 * fRec18[1]) + (fConst5 * fRec18[2])));
+			fRec17[0] = (fConst6 * (fRec18[0] - fRec18[2]));
+			fVec9[(IOTA & 511)] = (fSlow11 + (fRec19[1] + 1.0f));
+			fRec20[0] = ((0.999982774f * fVec9[((IOTA - iSlow25) & 511)]) - ((fSlow26 * fRec20[1]) + (fConst5 * fRec20[2])));
+			fRec19[0] = (fConst6 * (fRec20[0] - fRec20[2]));
+			fVec10[(IOTA & 255)] = (fSlow27 + (fRec21[1] + 1.0f));
+			fRec22[0] = (fVec10[((IOTA - iSlow28) & 255)] - ((fSlow29 * fRec22[1]) + (fConst5 * fRec22[2])));
+			fRec21[0] = (fConst6 * (fRec22[0] - fRec22[2]));
+			float fTemp0 = (fRec1[0] + (fRec3[0] + (fRec5[0] + (fRec7[0] + (fRec9[0] + (fRec11[0] + (fRec13[0] + (fRec15[0] + ((fRec17[0] + fRec19[0]) + (2.0f * fRec21[0]))))))))));
+			fRec24[0] = (fSlow30 + (0.999000013f * fRec24[1]));
+			fRec23[0] = ((0.999000013f * fRec23[1]) + (0.00100000005f * fRec24[0]));
+			fRec28[0] = (fSlow31 + (0.999000013f * fRec28[1]));
+			fRec27[0] = ((0.999000013f * fRec27[1]) + (0.00100000005f * fRec28[0]));
+			float fTemp1 = (fRec26[1] + (fConst30 * fRec27[0]));
+			fRec26[0] = (fTemp1 - std::floor(fTemp1));
+			float fTemp2 = (3.14159274f * (fRec23[0] * ftbl0mydspSIG0[int((65536.0f * fRec26[0]))]));
+			float fTemp3 = std::sin(fTemp2);
+			float fTemp4 = std::cos(fTemp2);
+			float fTemp5 = ((fTemp0 * fTemp4) - (fTemp3 * fRec29[1]));
+			float fTemp6 = ((fTemp4 * fTemp5) - (fTemp3 * fRec30[1]));
+			float fTemp7 = ((fTemp4 * fTemp6) - (fTemp3 * fRec31[1]));
+			float fTemp8 = ((fTemp4 * fTemp7) - (fTemp3 * fRec32[1]));
+			float fTemp9 = ((fTemp4 * fTemp8) - (fTemp3 * fRec33[1]));
+			fRec34[0] = ((fTemp4 * fTemp9) - (fTemp3 * fRec34[1]));
+			fRec33[0] = ((fTemp3 * fTemp9) + (fTemp4 * fRec34[1]));
+			fRec32[0] = ((fTemp3 * fTemp8) + (fTemp4 * fRec33[1]));
+			fRec31[0] = ((fTemp3 * fTemp7) + (fTemp4 * fRec32[1]));
+			fRec30[0] = ((fTemp3 * fTemp6) + (fTemp4 * fRec31[1]));
+			fRec29[0] = ((fTemp3 * fTemp5) + (fTemp4 * fRec30[1]));
+			float fTemp10 = ((fTemp0 * fTemp3) + (fRec29[1] * fTemp4));
+			fVec11[0] = fTemp10;
+			fRec0[0] = (0.0f - (fConst2 * ((fConst3 * fRec0[1]) - (fTemp10 + fVec11[1]))));
+			output0[i] = FAUSTFLOAT(fRec0[0]);
 			IOTA = (IOTA + 1);
-			fVec0[1] = fVec0[0];
-			fRec12[1] = fRec12[0];
-			fRec3[1] = fRec3[0];
-			fRec0[2] = fRec0[1];
-			fRec0[1] = fRec0[0];
-			fRec1[2] = fRec1[1];
+			fRec2[2] = fRec2[1];
+			fRec2[1] = fRec2[0];
 			fRec1[1] = fRec1[0];
+			fRec4[2] = fRec4[1];
+			fRec4[1] = fRec4[0];
+			fRec3[1] = fRec3[0];
+			fRec6[2] = fRec6[1];
+			fRec6[1] = fRec6[0];
+			fRec5[1] = fRec5[0];
+			fRec8[2] = fRec8[1];
+			fRec8[1] = fRec8[0];
+			fRec7[1] = fRec7[0];
+			fRec10[2] = fRec10[1];
+			fRec10[1] = fRec10[0];
+			fRec9[1] = fRec9[0];
+			fRec12[2] = fRec12[1];
+			fRec12[1] = fRec12[0];
+			fRec11[1] = fRec11[0];
+			fRec14[2] = fRec14[1];
+			fRec14[1] = fRec14[0];
+			fRec13[1] = fRec13[0];
+			fRec16[2] = fRec16[1];
+			fRec16[1] = fRec16[0];
+			fRec15[1] = fRec15[0];
+			fRec18[2] = fRec18[1];
+			fRec18[1] = fRec18[0];
+			fRec17[1] = fRec17[0];
+			fRec20[2] = fRec20[1];
+			fRec20[1] = fRec20[0];
+			fRec19[1] = fRec19[0];
+			fRec22[2] = fRec22[1];
+			fRec22[1] = fRec22[0];
+			fRec21[1] = fRec21[0];
+			fRec24[1] = fRec24[0];
+			fRec23[1] = fRec23[0];
+			fRec28[1] = fRec28[0];
+			fRec27[1] = fRec27[0];
+			fRec26[1] = fRec26[0];
+			fRec34[1] = fRec34[0];
+			fRec33[1] = fRec33[0];
+			fRec32[1] = fRec32[0];
+			fRec31[1] = fRec31[0];
+			fRec30[1] = fRec30[0];
+			fRec29[1] = fRec29[0];
+			fVec11[1] = fVec11[0];
+			fRec0[1] = fRec0[0];
 		}
 	}
 
@@ -10302,7 +8975,7 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
-karplus::karplus(int sample_rate, int buffer_size)
+bowl::bowl(int sample_rate, int buffer_size)
 {
 #ifdef NVOICES
     int nvoices = NVOICES;
@@ -10318,11 +8991,6 @@ karplus::karplus(int sample_rate, int buffer_size)
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
     
-#ifdef SOUNDFILE
-    fSoundUI = new SoundUI("/sdcard/", sample_rate);
-    fDSP->buildUserInterface(fSoundUI);
-#endif
-    
 #ifdef MIDICTRL
     fMIDIHandler = new esp32_midi();
 #ifdef NVOICES
@@ -10333,7 +9001,7 @@ karplus::karplus(int sample_rate, int buffer_size)
 #endif
 }
 
-karplus::~karplus()
+bowl::~bowl()
 {
     delete fDSP;
     delete fUI;
@@ -10342,12 +9010,9 @@ karplus::~karplus()
     delete fMIDIInterface;
     delete fMIDIHandler;
 #endif
-#ifdef SOUNDFILE
-    delete fSoundUI;
-#endif
 }
 
-bool karplus::start()
+bool bowl::start()
 {
 #ifdef MIDICTRL
     if (!fMIDIInterface->run()) return false;
@@ -10355,7 +9020,7 @@ bool karplus::start()
     return fAudio->start();
 }
 
-void karplus::stop()
+void bowl::stop()
 {
 #ifdef MIDICTRL
     fMIDIInterface->stop();
@@ -10363,12 +9028,12 @@ void karplus::stop()
     fAudio->stop();
 }
 
-void karplus::setParamValue(const std::string& path, float value)
+void bowl::setParamValue(const std::string& path, float value)
 {
     fUI->setParamValue(path, value);
 }
 
-float karplus::getParamValue(const std::string& path)
+float bowl::getParamValue(const std::string& path)
 {
     return fUI->getParamValue(path);
 }
@@ -10394,7 +9059,7 @@ extern "C" void app_main()
     wm8978.i2sCfg(2,0);
     
     // Allocate and start Faust DSP
-    karplus* DSP = new karplus(48000, 32);
+    bowl* DSP = new bowl(48000, 32);
     DSP->start();
     
     // Waiting forever
