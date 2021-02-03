@@ -24,9 +24,9 @@ void setup() {
   //synth.setParamValue("S",0.0);
   //synth.setParamValue("R",0.0);
   //synth.setParamValue("bend",0.0);
-  synth.setParamValue("freq",49.0);
+  synth.setParamValue("lfoDepth",1.0);
   synth.setParamValue("lfoFreq",3.0);
-  synth.setParamValue("waveTravel",0.5);
+  synth.setParamValue("waveTravel",0.3);
 }
 
 void loop() {
