@@ -1,59 +1,78 @@
-import("all.lib");
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
+//###################################### fm.dsp ##########################################
+// A simple smart phone percussion abstract sound toy based on an FM synth.
 //
-// Simple FM synthesizer.
-// 2 oscillators and FM feedback on modulant oscillator
+// ## `SmartKeyboard` Use Strategy
 //
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// MIDI IMPLEMENTATION:
+// The idea here is to use the `SmartKeyboard` interface as an X/Y control pad by just
+// creating one keyboard with on key and by retrieving the X and Y position on that single
+// key using the `x` and `y` standard parameters. Keyboard mode is deactivated so that
+// the color of the pad doesn't change when it is pressed.
 //
-// CC 1 : FM feedback on modulant oscillator.
-// CC 14 : Modulator frequency ratio.
+// ## Compilation Instructions
 //
-// CC 73 : Attack
-// CC 76 : Decay
-// CC 77 : Sustain
-// CC 72 : Release
+// This Faust code will compile fine with any of the standard Faust targets. However
+// it was specifically designed to be used with `faust2smartkeyb`. For best results,
+// we recommend to use the following parameters to compile it:
 //
-///////////////////////////////////////////////////////////////////////////////////////////////////
+// ```
+// faust2smartkeyb [-ios/-android] crazyGuiro.dsp
+// ```
+//
+// ## Version/Licence
+//
+// Version 0.0, Feb. 2017
+// Copyright Romain Michon CCRMA (Stanford University)/GRAME 2017
+// MIT Licence: https://opensource.org/licenses/MIT
+//########################################################################################
 
-// GENERAL, Keyboard
-midigate = button("gate");
-midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain = nentry("gain", 1, 0, 1, 0.01);
+declare name "fm";
 
-// modwheel:
-feedb = (gFreq-1) * (hslider("feedb[midi:ctrl 1]", 0, 0, 1, 0.001) : si.smoo);
-modFreqRatio = hslider("ratio[midi:ctrl 14]",2,0,20,0.01) : si.smoo;
+import("stdfaust.lib");
 
-// pitchwheel
-bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
+//========================= Smart Keyboard Configuration =================================
+// (1 keyboards with 1 key configured as a pad.
+//========================================================================================
 
-gFreq = midifreq * bend;
+declare interface "SmartKeyboard{
+	'Number of Keyboards':'1',
+	'Keyboard 0 - Number of Keys':'1',
+	'Keyboard 0 - Piano Keyboard':'0',
+	'Keyboard 0 - Static Mode':'1',
+	'Keyboard 0 - Send X':'1',
+	'Keyboard 0 - Send Y':'1'
+}";
+
+//================================ Instrument Parameters =================================
+// Creates the connection between the synth and the mobile device
+//========================================================================================
+
+// SmartKeyboard X parameter
+x = hslider("x",0,0,1,0.01);
+// SmartKeyboard Y parameter
+y = hslider("y",0,0,1,0.01);
+// SmartKeyboard gate parameter
+gate = button("gate") ;
+// mode resonance duration is controlled with the x axis of the accelerometer
+modFreqRatio = hslider("res[acc: 0 0 -10 0 10]",1,0,2,0.01) : si.smoo;
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
-// Same for volum & modulation:
-volA = hslider("A[midi:ctrl 73]",0.01,0.01,4,0.01);
-volD = hslider("D[midi:ctrl 76]",0.6,0.01,8,0.01);
-volS = hslider("S[midi:ctrl 77]",0.2,0,1,0.01);
-volR = hslider("R[midi:ctrl 72]",0.8,0.01,8,0.01);
-envelop = en.adsre(volA,volD,volS,volR,midigate);
+
+// carrier frequency
+minFreq = 80;
+maxFreq = 500;
+cFreq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,1);
 
 // modulator frequency
-modFreq = gFreq*modFreqRatio;
+modFreq = cFreq*modFreqRatio;
 
 // modulation index
-FMdepth = envelop * 1000 * midigain;
-
-// Out amplitude
-vol = envelop;
+modIndex = y*1000 : si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
-FMfeedback(frq) = (+(_,frq):os.osci ) ~ (* (feedb));
-FMall(f) = os.osci(f+(FMdepth*FMfeedback(f*modFreqRatio)));
+// since the generated sound is pretty chaotic, there is no need for an envelope generator
+fmSynth = sy.fm((cFreq,modFreq),(modIndex))*(gate : si.smoo)*0.5;
 
-process = FMall(gFreq) * vol;
+process = fmSynth;

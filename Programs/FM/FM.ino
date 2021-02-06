@@ -24,9 +24,9 @@ void setup() {
   //synth.setParamValue("S",0.0);
   //synth.setParamValue("R",0.0);
   //synth.setParamValue("bend",0.0);
-  synth.setParamValue("freq",49.0);
-  synth.setParamValue("feedb",0.5);
-  synth.setParamValue("ratio",2.5);
+  //synth.setParamValue("freq",49.0);
+  //synth.setParamValue("feedb",0.5);
+  //synth.setParamValue("ratio",2.5);
 }
 
 void loop() {
@@ -34,7 +34,7 @@ void loop() {
   
   for (uint8_t i=0; i<12; i++) {
     if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
-      synth.setParamValue("freq",note[i+36]);
+      synth.setParamValue("freq",1/i);
       synth.setParamValue("gate",1);
     }
     if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
