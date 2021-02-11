@@ -22,9 +22,9 @@ void setup() {
   synth.setParamValue("Sawtooth",1.0);
   synth.setParamValue("Triangle",1.0);
   synth.setParamValue("Mix Amplitude",0.0);
-  synth.setParamValue("Frequency",49.0);
-  synth.setParamValue("Detuning 1",-5.0);
-  synth.setParamValue("Detuning 2",5.0);
+  synth.setParamValue("Frequency",0.0);
+  synth.setParamValue("Detuning 1",0.0);
+  synth.setParamValue("Detuning 2",0.0);
 }
 
 void loop() {
@@ -38,8 +38,7 @@ void loop() {
   
   for (uint8_t i=0; i<12; i++) {
     if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
-      //synth.setParamValue("Frequency",note[i+36]);
-      synth.setParamValue("Frequency",i*10);
+      synth.setParamValue("Frequency",i+36);
     }
     if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
       synth.setParamValue("Frequency",0);

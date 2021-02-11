@@ -1,7 +1,7 @@
 #include "scales.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "WaveSynth.h"
+#include "lab.h"
 #include <Wire.h>
 #include "Adafruit_MPR121.h"
 
@@ -14,19 +14,23 @@ Adafruit_MPR121 cap = Adafruit_MPR121();
 uint16_t lasttouched = 0;
 uint16_t currtouched = 0;
 
-WaveSynth synth(48000,8);
+lab synth(22000,8);
 
 void setup() {
   cap.begin(0x5A);
   synth.start();
-  //synth.setParamValue("A",0.0);
-  //synth.setParamValue("D",0.0);
-  //synth.setParamValue("S",0.0);
-  synth.setParamValue("R",2.0);
-  //synth.setParamValue("bend",0.0);
-  synth.setParamValue("lfoDepth",1.0);
-  synth.setParamValue("lfoFreq",3.0);
-  synth.setParamValue("waveTravel",0.3);
+  //vcf
+  synth.setParamValue("Bypass",0);
+  //Signal Levels
+  synth.setParamValue("Sawtooth",1.0);
+  //Pulse Train
+  //synth.setParamValue("Order 3",0.0);
+  //Signal Parameters
+  //synth.setParamValue("Mix Amplitude",-10.0);
+  //synth.setParamValue("Frequency",49.0);
+  //synth.setParamValue("lfoDepth",1.0);
+  //synth.setParamValue("lfoFreq",3.0);
+  //synth.setParamValue("waveTravel",0.3);
 }
 
 void loop() {
@@ -34,11 +38,11 @@ void loop() {
   
   for (uint8_t i=0; i<12; i++) {
     if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
-      synth.setParamValue("freq",note[i+36]);
-      synth.setParamValue("gate",1);
+      synth.setParamValue("Frequency",note[i+36]);
+      //synth.setParamValue("gate",1);
     }
     if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
-      synth.setParamValue("gate",0);
+      //synth.setParamValue("gate",0);
     }
   }
 
