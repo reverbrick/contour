@@ -1,7 +1,7 @@
 #include "scales.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "VirtualAnalogSynth.h"
+#include "contour.h"
 #include <Wire.h>
 #include "Adafruit_MPR121.h"
 
@@ -13,14 +13,18 @@ Adafruit_MPR121 cap = Adafruit_MPR121();
 
 uint16_t lasttouched = 0;
 uint16_t currtouched = 0;
+uint8_t frq = 0;
+uint8_t gate = 0;
 
-VirtualAnalogSynth synth(22000,16);
+contour synth(22000,16);
 
 void setup() {
   cap.begin(0x5A);
   Serial.begin(115200);
   synth.start();
-  synth.setParamValue("Sawtooth",0.0);
+  synth.setParamValue("fequency",440.0);
+  /*
+  synth.setParamValue("Sawtooth",0.4);
   synth.setParamValue("Triangle",0.0);
   synth.setParamValue("Mix Amplitude",-120.0);
   synth.setParamValue("Frequency",0.0);
@@ -31,27 +35,23 @@ void setup() {
   synth.setParamValue("0x00",1.0);
   synth.setParamValue("Pink Noise",0.0);
   synth.setParamValue("Portamento",0.00100000005f);
+  */
 }
 
 void loop() {
-  /*
-  for(int x = 0; x<4000; x++){
-   faustSawtooth.setParamValue("freq",x);
-   delay(5);
-  }
-  */
   currtouched = cap.touched();
+  gate = 0;
   for (uint8_t i=0; i<12; i++) {
     if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
       //synth.setParamValue("Detuning 1",cap.filteredData(i)/64);
-      synth.setParamValue("Frequency",i+36);
-      synth.setParamValue("Mix Amplitude",0.0);
+      frq = i;
+      synth.setParamValue("gate",1.0);
     }
     if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
-      //synth.setParamValue("Frequency",0);
-      synth.setParamValue("Mix Amplitude",-120.0);
+      synth.setParamValue("gate",0.0);
     }
   }
+  synth.setParamValue("fequency",cap.baselineData(frq)+note[frq+48]);
 
   // reset our state
   lasttouched = currtouched;

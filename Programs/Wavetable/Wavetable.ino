@@ -34,11 +34,13 @@ void loop() {
   
   for (uint8_t i=0; i<12; i++) {
     if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
+      //synth.keyOn(i+36,100);
       synth.setParamValue("freq",note[i+36]);
-      synth.setParamValue("gate",1);
+      //synth.setParamValue("gate",1);
     }
     if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
-      synth.setParamValue("gate",0);
+      //synth.keyOff(i+36);
+      //synth.setParamValue("gate",0);
     }
   }
 

@@ -3,7 +3,7 @@
 
 #include "karplus.h"
 
-karplus Karplus(48000,32);
+karplus Karplus(22000,32);
 
 void setup() {
   Karplus.start();
