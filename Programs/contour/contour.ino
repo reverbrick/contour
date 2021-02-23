@@ -4,70 +4,84 @@
 #include "contour.h"
 #include <Wire.h>
 #include "Adafruit_MPR121.h"
-
-#ifndef _BV
-#define _BV(bit) (1 << (bit)) 
-#endif
+#include <Trill.h>
 
 Adafruit_MPR121 cap = Adafruit_MPR121();
+Adafruit_MPR121 cap2 = Adafruit_MPR121();
+Trill hex;
+Trill bar;
 
-uint16_t lasttouched = 0;
-uint16_t currtouched = 0;
-uint8_t frq = 0;
-uint8_t gate = 0;
+int frq = 0;
+int bend = 0;
+float touch = 0;
+float max_touch = 0;
+boolean hex_on = false;
+boolean bar_on = false;
 
-contour synth(22000,16);
+contour synth(48000,8);
 
 void setup() {
+  //keyboard
   cap.begin(0x5A);
-  Serial.begin(115200);
+  cap2.begin(0x5C);
+  cap.setThreshholds(12, 6); //touch/release - default 12/6
+  cap2.setThreshholds(12, 6); //touch/release - default 12/6
+  //trills
+  hex.setup(Trill::TRILL_HEX);
+  bar.setup(Trill::TRILL_BAR);
+  //synth
   synth.start();
-  synth.setParamValue("fequency",440.0);
-  /*
-  synth.setParamValue("Sawtooth",0.4);
-  synth.setParamValue("Triangle",0.0);
-  synth.setParamValue("Mix Amplitude",-120.0);
-  synth.setParamValue("Frequency",0.0);
-  synth.setParamValue("Detuning 1",0.1);
-  synth.setParamValue("Detuning 2",-0.5);
-  synth.setParamValue("Saw Order",1.0);
-  synth.setParamValue("Duty Cycle",0.4);
-  synth.setParamValue("0x00",1.0);
-  synth.setParamValue("Pink Noise",0.0);
-  synth.setParamValue("Portamento",0.00100000005f);
-  */
+  synth.setParamValue("gate",0);
+  synth.setParamValue("cutoff",10000);
+  synth.setParamValue("q",5);
+  synth.setParamValue("duty",0.5);
 }
 
 void loop() {
-  currtouched = cap.touched();
-  gate = 0;
-  for (uint8_t i=0; i<12; i++) {
-    if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
-      //synth.setParamValue("Detuning 1",cap.filteredData(i)/64);
+  hex.read();
+  if(hex.getNumTouches() > 0) {
+    //for(int i = 0; i < hex.getNumTouches(); i++) {
+        //Serial.print(hex.touchLocation(i));
+        //Serial.print(hex.touchSize(i));
+    //}
+    bend = hex.touchLocation(0)-1600;
+    hex_on = true;
+  }
+  else if(hex_on) {
+    bend = 0;
+    hex_on = false;
+  }
+  max_touch = 0;
+  frq = 0;
+  for (uint8_t i=0; i<24; i++) {
+    if(i<12){
+      touch = (300-cap.filteredData(i))/300.0;  
+    } else {
+      touch = (300-cap2.filteredData(i-12))/300.0;
+    }
+    if (touch>max_touch){
+      max_touch = touch;
       frq = i;
-      synth.setParamValue("gate",1.0);
-    }
-    if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
-      synth.setParamValue("gate",0.0);
     }
   }
-  synth.setParamValue("fequency",cap.baselineData(frq)+note[frq+48]);
-
-  // reset our state
-  lasttouched = currtouched;
-/*
-  // debugging info, what
-  Serial.print("\t\t\t\t\t\t\t\t\t\t\t\t\t 0x"); Serial.println(cap.touched(), HEX);
-  Serial.print("Filt: ");
-  for (uint8_t i=0; i<12; i++) {
-    Serial.print(cap.filteredData(i)); Serial.print("\t");
+  if(max_touch > 0.2){ //touch threshold
+    synth.setParamValue("freq",note[frq+48]+bend);
+    synth.setParamValue("gain",max_touch);
+    synth.setParamValue("gate",1);
+  } else {
+    synth.setParamValue("gate",0);
   }
-  Serial.println();
-  Serial.print("Base: ");
-  for (uint8_t i=0; i<12; i++) {
-    Serial.print(cap.baselineData(i)); Serial.print("\t");
+  bar.read();
+  if(bar.getNumTouches() > 0) {
+    //for(int i = 0; i < bar.getNumTouches(); i++) {
+        //Serial.print(bar.touchLocation(i));
+        //Serial.print(bar.touchSize(i));
+    //}
+    synth.setParamValue("cutoff",bar.touchLocation(0));
+    bar_on = true;
   }
-  Serial.println();
-*/ 
-
+  else if(bar_on) {
+    synth.setParamValue("cutoff",10000);
+    bar_on = false;
+  }
 }
