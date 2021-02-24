@@ -1,3 +1,8 @@
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+ return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 float note[109] = {
 16.35,  //C0
 17.32,  // C#0/Db0 

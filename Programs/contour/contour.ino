@@ -12,15 +12,23 @@ Trill hex;
 Trill bar;
 
 int frq = 0;
+int drone = 0;
+int transp = 0;
+float duty = 0.5;
 float bend = 0;
+float rel = 0.2;
 float touch = 0;
 float max_touch = 0;
 boolean hex_on = false;
 boolean bar_on = false;
+int hex_prg = 0;
+int btn_pin[4] = {34,35,32,27};
 
 contour synth(48000,8);
 
 void setup() {
+  //debug
+  Serial.begin(115200);
   //keyboard
   cap.begin(0x5A);
   cap2.begin(0x5C);
@@ -29,12 +37,18 @@ void setup() {
   //trills
   hex.setup(Trill::TRILL_HEX);
   bar.setup(Trill::TRILL_BAR);
+  //buttons
+  for(int i = 0; i < 4; i++) {
+      pinMode(btn_pin[i], INPUT);
+  }
   //synth
   synth.start();
   synth.setParamValue("gate",0);
   synth.setParamValue("cutoff",10000);
   synth.setParamValue("q",5);
   synth.setParamValue("duty",0.5);
+  synth.setParamValue("bend",0);
+  synth.setParamValue("release",0.2);
 }
 
 void loop() {
@@ -42,13 +56,45 @@ void loop() {
   //getNumHorizontalTouches()
   //touchHorizontalLocation(i)
   //touchHorizontalSize(i)
+  //buttons
+  Serial.println(transp);
+  if(digitalRead(btn_pin[0]) == 0) {
+    //transp = transp-12;
+  }
+  if(digitalRead(btn_pin[1]) == 0) {
+    //transp = transp+12;
+    
+  }
+  if(digitalRead(btn_pin[2]) == 0) {
+    //hex_prg++;
+  }
+  if(transp<0){
+    transp=0;
+  }
+  if(transp>64){
+    transp=64;
+  }
   if(hex.getNumTouches() > 0) {
     //for(int i = 0; i < hex.getNumTouches(); i++) {
         //Serial.print(hex.touchLocation(i));
         //Serial.print(hex.touchSize(i));
     //}
-    //todo bend scaling
-    bend = hex.touchLocation(0)-900;
+    //Serial.println(hex.getNumTouches());
+    if(hex_prg==0){
+      duty = mapfloat(hex.touchHorizontalLocation(0),0.00,1880.00,0.00,1.00);  
+      synth.setParamValue("duty",duty);
+    } else if (hex_prg==1){
+      bend = mapfloat(hex.touchLocation(0),0.00,1880.00,-130.82,130.82);//* 32,71;  
+      synth.setParamValue("bend",bend);
+    } else if (hex_prg==2){
+      rel = mapfloat(hex.touchLocation(0),0.00,1880.00,0.00,5.00);
+      synth.setParamValue("release",rel);
+    } else if (hex_prg==3){
+      drone = not(drone);
+      synth.setParamValue("drone",drone);
+    } else {
+      hex_prg = 0;
+    }
     hex_on = true;
   }
   else if(hex_on) {
@@ -69,7 +115,7 @@ void loop() {
     }
   }
   if(max_touch > 0.2){ //touch threshold
-    synth.setParamValue("freq",note[frq+48]+bend);
+    synth.setParamValue("freq",note[frq+transp]);
     synth.setParamValue("gain",max_touch);
     synth.setParamValue("gate",1);
   } else {
@@ -85,7 +131,7 @@ void loop() {
     bar_on = true;
   }
   else if(bar_on) {
-    synth.setParamValue("cutoff",10000);
+    //synth.setParamValue("cutoff",10000);
     bar_on = false;
   }
 }
