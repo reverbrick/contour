@@ -12,7 +12,7 @@ Trill hex;
 Trill bar;
 
 int frq = 0;
-int bend = 0;
+float bend = 0;
 float touch = 0;
 float max_touch = 0;
 boolean hex_on = false;
@@ -39,12 +39,16 @@ void setup() {
 
 void loop() {
   hex.read();
+  //getNumHorizontalTouches()
+  //touchHorizontalLocation(i)
+  //touchHorizontalSize(i)
   if(hex.getNumTouches() > 0) {
     //for(int i = 0; i < hex.getNumTouches(); i++) {
         //Serial.print(hex.touchLocation(i));
         //Serial.print(hex.touchSize(i));
     //}
-    bend = hex.touchLocation(0)-1600;
+    //todo bend scaling
+    bend = hex.touchLocation(0)-900;
     hex_on = true;
   }
   else if(hex_on) {
@@ -77,7 +81,7 @@ void loop() {
         //Serial.print(bar.touchLocation(i));
         //Serial.print(bar.touchSize(i));
     //}
-    synth.setParamValue("cutoff",bar.touchLocation(0));
+    synth.setParamValue("cutoff",bar.touchLocation(0)*2);
     bar_on = true;
   }
   else if(bar_on) {
