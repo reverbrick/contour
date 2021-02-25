@@ -13,16 +13,13 @@ Trill bar;
 
 int frq = 0;
 int drone = 0;
-int transp = 0;
-float duty = 0.5;
-float bend = 0;
-float rel = 0.2;
+int transp = 24;
 float touch = 0;
 float max_touch = 0;
 boolean hex_on = false;
-boolean bar_on = false;
 int hex_prg = 0;
-int btn_pin[4] = {34,35,32,27};
+int btn_pin[5] = {34,35,32,27};
+int btn_prv[5] = {0,0,0,0};
 
 contour synth(48000,8);
 
@@ -49,56 +46,55 @@ void setup() {
   synth.setParamValue("duty",0.5);
   synth.setParamValue("bend",0);
   synth.setParamValue("release",0.2);
+  synth.setParamValue("detune",0.2);
 }
 
 void loop() {
   hex.read();
-  //getNumHorizontalTouches()
-  //touchHorizontalLocation(i)
-  //touchHorizontalSize(i)
-  //buttons
-  Serial.println(transp);
-  if(digitalRead(btn_pin[0]) == 0) {
-    //transp = transp-12;
+  for(int i = 0; i < 4; i++) {
+    if(digitalRead(btn_pin[i]) == 0 && btn_prv[i] == 0) {
+      btn_prv[i] = 1;
+    } else if(digitalRead(btn_pin[i]) == 0) {
+      btn_prv[i] = 2;
+    } else {
+      btn_prv[i] = 0;
+    } 
   }
-  if(digitalRead(btn_pin[1]) == 0) {
-    //transp = transp+12;
-    
+  if(btn_prv[0] == 1) {
+    transp = transp+12;
   }
-  if(digitalRead(btn_pin[2]) == 0) {
-    //hex_prg++;
+  if(btn_prv[1] == 1) {
+    hex_prg++;
   }
-  if(transp<0){
+  if(btn_prv[3] == 1) {
+    drone=not(drone);
+    synth.setParamValue("drone",drone);
+  }
+  if(transp<=0){
     transp=0;
   }
-  if(transp>64){
-    transp=64;
+  if(transp>=60){
+    transp=0;
   }
   if(hex.getNumTouches() > 0) {
-    //for(int i = 0; i < hex.getNumTouches(); i++) {
-        //Serial.print(hex.touchLocation(i));
-        //Serial.print(hex.touchSize(i));
-    //}
-    //Serial.println(hex.getNumTouches());
     if(hex_prg==0){
-      duty = mapfloat(hex.touchHorizontalLocation(0),0.00,1880.00,0.00,1.00);  
-      synth.setParamValue("duty",duty);
+      synth.setParamValue("duty",mapfloat(hex.touchHorizontalLocation(0),0.00,1880.00,0.00,1.00));
     } else if (hex_prg==1){
-      bend = mapfloat(hex.touchLocation(0),0.00,1880.00,-130.82,130.82);//* 32,71;  
-      synth.setParamValue("bend",bend);
+      synth.setParamValue("bend",mapfloat(hex.touchLocation(0),0.00,1880.00,-130.82,130.82));
     } else if (hex_prg==2){
-      rel = mapfloat(hex.touchLocation(0),0.00,1880.00,0.00,5.00);
-      synth.setParamValue("release",rel);
+      synth.setParamValue("detune1",mapfloat(hex.touchLocation(0),0.00,1880.00,-130.82,130.82));
+      synth.setParamValue("detune2",mapfloat(hex.touchHorizontalLocation(0),0.00,1880.00,-130.82,130.82));
     } else if (hex_prg==3){
-      drone = not(drone);
-      synth.setParamValue("drone",drone);
+      synth.setParamValue("release",mapfloat(hex.touchLocation(0),0.00,1880.00,0.00,5.00));
     } else {
       hex_prg = 0;
     }
     hex_on = true;
   }
   else if(hex_on) {
-    bend = 0;
+    if (hex_prg==1){
+      synth.setParamValue("bend",0);
+    }
     hex_on = false;
   }
   max_touch = 0;
@@ -123,15 +119,6 @@ void loop() {
   }
   bar.read();
   if(bar.getNumTouches() > 0) {
-    //for(int i = 0; i < bar.getNumTouches(); i++) {
-        //Serial.print(bar.touchLocation(i));
-        //Serial.print(bar.touchSize(i));
-    //}
-    synth.setParamValue("cutoff",bar.touchLocation(0)*2);
-    bar_on = true;
-  }
-  else if(bar_on) {
-    //synth.setParamValue("cutoff",10000);
-    bar_on = false;
+    synth.setParamValue("cutoff",mapfloat(bar.touchLocation(0),0,3200,50.00,10000.00));
   }
 }
